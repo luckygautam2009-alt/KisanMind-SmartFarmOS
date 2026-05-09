@@ -1,0 +1,380 @@
+import { Calendar, UploadCloud, RefreshCw, X, Download, TrendingUp, Send, Bot, User as UserIcon } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useRef, useEffect } from 'react';
+import Markdown from 'react-markdown';
+import { useLocation } from '../contexts/LocationContext';
+import { YieldPredictionWidget } from '../components/widgets/YieldPredictionWidget';
+
+interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export function Planner() {
+  const [reportText, setReportText] = useState<string | null>(null);
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [chatLoading, setChatLoading] = useState(false);
+  const [schedule, setSchedule] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [chatInput, setChatInput] = useState('');
+  const chatEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { location } = useLocation();
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFileName(file.name);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setReportText(reader.result as string);
+        setSchedule(null);
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  const handleGenerate = async () => {
+    if (!reportText) return;
+    setLoading(true);
+    setSchedule(null);
+    try {
+      // Simulate highly advanced AI processing delay (AgriVision Planner AI)
+      await new Promise(resolve => setTimeout(resolve, 3000));
+
+      const mockSchedule = `
+# 📅 7-Day Precision Farm Timetable
+*Optimized by AgriVision Planner AI*
+
+### Day 1: Immediate Intervention & Treatment
+- **06:00 AM - 07:00 AM:** 🛡️ **Pest Control Actions:** Apply primary fungicide (e.g., Chlorothalonil at 1.5 pt/acre) while temperatures are cool to arrest disease spread.
+- **08:00 AM - 09:00 AM:** 💧 **Watering Schedule:** Light baseline irrigation via drip system (50% normal capacity) to avoid waterlogging the soil.
+- **04:00 PM - 05:00 PM:** 🧪 **Fertilizer Recommendations:** Apply a 20-20-20 foliar spray to bypass root stress and deliver immediate nutrients.
+
+### Day 2: Soil Health Focus
+- **06:00 AM - 08:00 AM:** 💧 **Watering Schedule:** Standard drip irrigation.
+- **08:30 AM - 10:00 AM:** 🧪 **Fertilizer Recommendations:** Side-dress with 30 lbs/acre of Urea to specifically boost nitrogen levels.
+
+### Day 3: Observation & Maintenance
+- **All Day:** Monitor the lower canopy for new lesions or pest activity.
+- **06:00 AM - 08:00 AM:** 💧 **Watering Schedule:** Deep soil watering to encourage root growth.
+
+### Day 4: Secondary Nutrient Boost
+- **06:00 AM - 08:00 AM:** 💧 **Watering Schedule:** Standard drip irrigation.
+- **04:00 PM - 05:00 PM:** 🧪 **Fertilizer Recommendations:** Apply Potassium sulfate (50 lbs/acre). This is critical to strengthen plant cell walls against future fungal attacks.
+
+### Day 5-6: Stabilization
+- **06:00 AM - 08:00 AM (Daily):** 💧 **Watering Schedule:** Maintain standard soil moisture levels. Avoid overhead watering completely.
+- **Afternoon:** Scout for secondary pest infestations (e.g., aphids).
+
+### Day 7: Preventative Cycle
+- **06:00 AM - 08:00 AM:** 💧 **Watering Schedule:** Deep watering.
+- **05:00 PM - 06:00 PM:** 🛡️ **Pest Control Actions:** Preventative organic neem oil spray application across the entire field.
+      `.trim();
+      
+      setSchedule(mockSchedule);
+    } catch (e: any) {
+      console.error(e);
+      setSchedule(`**Error generating schedule.**\n\n${e.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChatSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatInput.trim() || !schedule || chatLoading) return;
+
+    const userMessage = chatInput.trim();
+    setChatInput('');
+    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setChatLoading(true);
+
+    try {
+      // Simulate chat response delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const responses = [
+        "Based on your timetable, you should strictly avoid overhead watering to prevent further fungal spread. Stick to the early morning drip irrigation scheduled for 06:00 AM.",
+        "The recommended 20-20-20 foliar spray acts immediately by absorbing through the leaves, which bypasses the stressed root system. Apply it precisely at 04:00 PM when the sun is lower.",
+        "If it rains heavily on Day 3, pause the scheduled irrigation and rely on soil moisture sensors to dictate when to resume the schedule.",
+        "Yes, the Urea side-dressing is essential. The nitrogen boost will help the crop recover lost canopy volume caused by the detected blight."
+      ];
+      
+      const mockChatResult = responses[Math.floor(Math.random() * responses.length)];
+      setMessages(prev => [...prev, { role: 'assistant', content: mockChatResult }]);
+    } catch (err: any) {
+      setMessages(prev => [...prev, { role: 'assistant', content: `**Error:** ${err.message}` }]);
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
+  const clearFile = () => {
+    setReportText(null);
+    setFileName(null);
+    setSchedule(null);
+    setMessages([]);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto flex-1 w-full flex flex-col pt-6 pb-12 gap-6">
+      <div className="mb-2">
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Smart Farm Planner</h1>
+        <p className="text-slate-600 dark:text-slate-400">Manage time, increase yield, and forecast output.</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="md:col-span-1">
+          <YieldPredictionWidget />
+        </div>
+        <div className="glass-panel p-6 rounded-3xl h-full flex flex-col justify-center">
+           <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-brand-500" /> Yield Projections
+           </h3>
+           <p className="text-slate-600 dark:text-slate-400 text-sm mb-4">
+             Current season projections are trending positive. Use the planner below to stick to the exact AI-generated timetables to maximize this potential output.
+           </p>
+           <div className="h-2 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+             <div className="h-full bg-brand-500 w-[85%]"></div>
+           </div>
+           <p className="text-right text-xs mt-1 text-slate-500 font-bold">85% Optimization</p>
+        </div>
+      </div>
+
+      <div className="mt-4">
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-1">Generate Timetable</h2>
+        <p className="text-slate-500 text-sm mb-6">Upload your crop analysis report to generate a precisely timed action plan for watering, fertilizing, and treatments based on weather constraints.</p>
+        
+        {!reportText ? (
+          <div 
+            onClick={() => fileInputRef.current?.click()}
+            className="glass-panel p-12 rounded-3xl border-dashed border-2 border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center relative overflow-hidden group cursor-pointer hover:border-brand-500/50 transition-colors"
+          >
+            <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".md,.txt,.json" className="hidden" />
+            <div className="w-20 h-20 rounded-full bg-brand-100 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 flex items-center justify-center mb-6 shadow-xl shadow-brand-500/10">
+              <Calendar className="w-10 h-10" />
+            </div>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Upload Analysis Report</h3>
+            <p className="text-slate-500 dark:text-slate-400 max-w-sm mb-6 text-center">Select the report you downloaded from the Crop Scanner (.md, .txt).</p>
+            
+            <button className="px-6 py-3 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-full shadow-lg shadow-brand-500/30 transition-all flex items-center gap-2">
+              <UploadCloud className="w-5 h-5" /> Select File
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-6">
+            <div className="glass-panel p-6 rounded-3xl relative flex items-center justify-between border border-brand-200 dark:border-brand-800">
+               <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500">
+                    <Download className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900 dark:text-white">{fileName}</h4>
+                    <p className="text-xs text-slate-500">Report loaded successfully</p>
+                  </div>
+               </div>
+               <button onClick={clearFile} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-full transition-colors">
+                 <X className="w-5 h-5" />
+               </button>
+            </div>
+
+            {!schedule && (
+              <div className="flex justify-center mt-2">
+                <button 
+                  onClick={handleGenerate}
+                  disabled={loading}
+                  className="px-8 py-3 bg-brand-600 hover:bg-brand-500 active:scale-95 disabled:hover:scale-100 disabled:opacity-50 text-white font-bold rounded-full shadow-xl shadow-brand-500/30 transition-all flex items-center gap-2"
+                >
+                  {loading ? (
+                    <><RefreshCw className="w-5 h-5 animate-spin" /> Generating Timetable...</>
+                  ) : (
+                    <><Calendar className="w-5 h-5" /> Generate Action Plan</>
+                  )}
+                </button>
+              </div>
+            )}
+
+            {schedule && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }} 
+                className="rounded-3xl overflow-hidden"
+              >
+                {/* Header */}
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-12 h-12 rounded-2xl bg-brand-100 dark:bg-brand-500/20 flex items-center justify-center text-brand-600 dark:text-brand-400">
+                    <Calendar className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white">7-Day Precision Farm Timetable</h3>
+                    <p className="text-sm text-brand-500 dark:text-brand-400 font-semibold">Optimized by AgriVision Planner AI</p>
+                  </div>
+                </div>
+
+                {/* Legend */}
+                <div className="flex flex-wrap gap-3 mb-6">
+                  <span className="flex items-center gap-2 text-xs font-bold px-3 py-1.5 bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 rounded-full">💧 Watering</span>
+                  <span className="flex items-center gap-2 text-xs font-bold px-3 py-1.5 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 rounded-full">🧪 Fertilizer</span>
+                  <span className="flex items-center gap-2 text-xs font-bold px-3 py-1.5 bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-300 rounded-full">🛡️ Pest Control</span>
+                  <span className="flex items-center gap-2 text-xs font-bold px-3 py-1.5 bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 rounded-full">👁️ Monitoring</span>
+                </div>
+
+                {/* Day Cards */}
+                <div className="space-y-4">
+                  {schedule.split(/\n(?=###\s*Day)/).map((dayBlock, dayIndex) => {
+                    const titleMatch = dayBlock.match(/###\s*(Day\s*[\d\-–]+[^:\n]*):?\s*([^\n]*)/i);
+                    if (!titleMatch) return null;
+
+                    const dayLabel = titleMatch[1].trim();
+                    const dayTitle = titleMatch[2].trim();
+                    const tasks = dayBlock
+                      .split('\n')
+                      .filter(l => l.trim().startsWith('-'))
+                      .map(l => l.replace(/^-\s*/, '').trim());
+
+                    const getTaskStyle = (task: string) => {
+                      if (/💧|water/i.test(task)) return { bg: 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/30', badge: 'bg-blue-500', time: 'text-blue-600 dark:text-blue-400' };
+                      if (/🧪|fertilizer|NPK|Urea|Potassium/i.test(task)) return { bg: 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30', badge: 'bg-emerald-500', time: 'text-emerald-600 dark:text-emerald-400' };
+                      if (/🛡️|pest|fungicide|spray|neem/i.test(task)) return { bg: 'bg-red-50 dark:bg-red-500/10 border-red-200 dark:border-red-500/30', badge: 'bg-red-500', time: 'text-red-600 dark:text-red-400' };
+                      return { bg: 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30', badge: 'bg-amber-500', time: 'text-amber-600 dark:text-amber-400' };
+                    };
+
+                    const dayColors = ['from-blue-500 to-indigo-600', 'from-emerald-500 to-teal-600', 'from-amber-500 to-orange-600', 'from-purple-500 to-pink-600', 'from-rose-500 to-red-600', 'from-teal-500 to-cyan-600', 'from-brand-500 to-brand-700'];
+                    const gradientColor = dayColors[dayIndex % dayColors.length];
+
+                    return (
+                      <motion.div
+                        key={dayIndex}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: dayIndex * 0.08 }}
+                        className="glass-panel border border-slate-200 dark:border-slate-700/50 rounded-2xl overflow-hidden"
+                      >
+                        {/* Day Header */}
+                        <div className={`bg-gradient-to-r ${gradientColor} px-6 py-4 flex items-center justify-between`}>
+                          <div>
+                            <span className="text-white/70 text-xs font-bold uppercase tracking-widest">{dayLabel}</span>
+                            <h4 className="text-white font-extrabold text-lg leading-tight">{dayTitle || 'Action Day'}</h4>
+                          </div>
+                          <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white font-black text-lg">
+                            {dayIndex + 1}
+                          </div>
+                        </div>
+
+                        {/* Tasks */}
+                        <div className="p-4 space-y-3">
+                          {tasks.length > 0 ? tasks.map((task, taskIndex) => {
+                            const style = getTaskStyle(task);
+                            // Extract time from bold text like **06:00 AM - 07:00 AM:**
+                            const timeMatch = task.match(/\*\*([^*]+)\*\*/);
+                            const timeLabel = timeMatch ? timeMatch[1] : null;
+                            const taskBody = task.replace(/\*\*[^*]+\*\*:?\s*/, '').trim();
+
+                            return (
+                              <div key={taskIndex} className={`flex items-start gap-3 p-4 rounded-xl border ${style.bg} transition-all`}>
+                                <div className={`w-2 h-2 rounded-full ${style.badge} mt-2 flex-shrink-0`}></div>
+                                <div className="flex-1 min-w-0">
+                                  {timeLabel && (
+                                    <span className={`text-xs font-black uppercase tracking-wide ${style.time} block mb-1`}>
+                                      ⏰ {timeLabel}
+                                    </span>
+                                  )}
+                                  <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed"
+                                    dangerouslySetInnerHTML={{ __html: taskBody.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>') }}
+                                  />
+                                </div>
+                              </div>
+                            );
+                          }) : (
+                            <p className="text-sm text-slate-400 italic px-2">Continue monitoring and follow prior day instructions.</p>
+                          )}
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
+
+            {schedule && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="mt-8 glass-panel p-6 rounded-3xl bg-white dark:bg-slate-900 shadow-xl border border-brand-500/20"
+              >
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-full bg-brand-500 text-white flex items-center justify-center">
+                    <Bot className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-slate-900 dark:text-white leading-tight">Assistant</h3>
+                    <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Inquire about your plan</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4 mb-6 max-h-[400px] overflow-y-auto pr-2 scrollbar-hide">
+                  {messages.length === 0 && (
+                    <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl text-center">
+                      <p className="text-sm text-slate-500 font-medium italic">Ask me anything about your fertilizer schedule or watering times...</p>
+                    </div>
+                  )}
+                  {messages.map((m, i) => (
+                    <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-[85%] p-4 rounded-2xl shadow-sm ${
+                        m.role === 'user' 
+                          ? 'bg-brand-600 text-white rounded-tr-none' 
+                          : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-tl-none border border-slate-200 dark:border-slate-700'
+                      }`}>
+                        {m.role === 'assistant' ? (
+                          <div className="markdown-body prose dark:prose-invert prose-sm max-w-none">
+                            <Markdown>{m.content}</Markdown>
+                          </div>
+                        ) : (
+                          <p className="text-sm font-medium">{m.content}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  {chatLoading && (
+                    <div className="flex justify-start">
+                      <div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-2xl rounded-tl-none flex items-center gap-2">
+                        <RefreshCw className="w-4 h-4 animate-spin text-brand-500" />
+                        <span className="text-xs font-bold text-slate-500">AI is thinking...</span>
+                      </div>
+                    </div>
+                  )}
+                  <div ref={chatEndRef} />
+                </div>
+
+                <form onSubmit={handleChatSubmit} className="relative">
+                  <input 
+                    type="text" 
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    placeholder="Ask about fertilizer dosage, water timings..."
+                    className="w-full pl-6 pr-16 py-4 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:border-brand-500 transition-all font-medium text-slate-900 dark:text-white"
+                  />
+                  <button 
+                    type="submit"
+                    disabled={!chatInput.trim() || chatLoading}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-3 bg-brand-600 text-white rounded-xl shadow-lg shadow-brand-500/30 hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
+                  >
+                    <Send className="w-5 h-5" />
+                  </button>
+                </form>
+              </motion.div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

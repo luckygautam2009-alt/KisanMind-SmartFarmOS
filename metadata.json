@@ -1,0 +1,6 @@
+{
+  "name": "KisanMind+",
+  "description": "Autonomous Smart Farming Intelligence System - Predictive, Proactive, and Accessible.",
+  "requestFramePermissions": ["camera", "geolocation", "microphone"],
+  "majorCapabilities": ["AI-powered crop analysis", "Multi-agent autonomous farming", "Real-time weather & market intelligence"]
+}

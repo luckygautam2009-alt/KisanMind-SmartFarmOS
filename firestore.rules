@@ -1,0 +1,33 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ── Helpers ────────────────────────────────────────────────────────────
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+
+    // ── Users ─────────────────────────────────────────────────────────────
+    // Each user can read and write their own profile document only
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // ── Scan History ──────────────────────────────────────────────────────
+    // Users can only access their own scan results
+    match /scans/{scanId} {
+      allow read, write: if isSignedIn() && resource == null || request.auth.uid == resource.data.userId;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+    }
+
+    // ── Timetables / Farm Plans ───────────────────────────────────────────
+    match /timetables/{planId} {
+      allow read, write: if isSignedIn() && resource == null || request.auth.uid == resource.data.userId;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+    }
+
+    // ── Deny everything else ─────────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
