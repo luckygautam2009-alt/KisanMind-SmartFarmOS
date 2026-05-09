@@ -40,7 +40,7 @@ const BLOG_POSTS = [
     author: "Anita Sharma",
     date: "April 25, 2026",
     category: "Soil Science",
-    image: "/blogs/soil_health.png",
+    image: "https://images.unsplash.com/photo-1593370843227-26830c7844e6?auto=format&fit=crop&q=80&w=800",
     readTime: "12 min read"
   },
   {
@@ -60,7 +60,7 @@ const BLOG_POSTS = [
     author: "Vikram Singh",
     date: "April 22, 2026",
     category: "Irrigation",
-    image: "https://images.unsplash.com/photo-1594499413902-7cbc4336c2a6?auto=format&fit=crop&q=80&w=800",
+    image: "https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?auto=format&fit=crop&q=80&w=800",
     readTime: "10 min read"
   },
   {
@@ -79,7 +79,7 @@ const BLOG_POSTS = [
     author: "Legal Desk",
     date: "April 20, 2026",
     category: "Policy",
-    image: "https://images.unsplash.com/photo-1594488426038-f9b69b5c3e60?auto=format&fit=crop&q=80&w=800",
+    image: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=800",
     readTime: "15 min read"
   }
 ];
