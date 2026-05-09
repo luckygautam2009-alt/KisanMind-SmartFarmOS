@@ -216,12 +216,12 @@ export function Auth() {
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent z-10"></div>
           
           <div className="absolute inset-0 flex flex-col justify-between p-12 text-white z-20">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-brand-500/20 border border-brand-500/30 backdrop-blur-md flex items-center justify-center">
+            <Link to="/" className="flex items-center gap-3 group">
+              <div className="w-12 h-12 rounded-2xl bg-brand-500/20 border border-brand-500/30 backdrop-blur-md flex items-center justify-center group-hover:scale-110 transition-transform">
                 <Sprout className="text-brand-400 w-7 h-7" />
               </div>
-              <span className="font-bold text-2xl tracking-tight">Kisan<span className="text-brand-400">Mind+</span></span>
-            </div>
+              <span className="font-bold text-2xl tracking-tight text-white">Kisan<span className="text-brand-400">Mind+</span></span>
+            </Link>
 
             <motion.div 
               initial={{ opacity: 0, y: 20 }}

@@ -67,15 +67,15 @@ export function Landing() {
 
       {/* Navigation */}
       <nav className="absolute top-0 w-full z-50 flex items-center justify-between px-6 lg:px-12 h-24 bg-transparent">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-brand-600 flex items-center justify-center shadow-sm">
+        <Link to="/" className="flex items-center gap-3 group">
+          <div className="w-10 h-10 rounded-lg bg-brand-600 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
             <Sprout className="text-white w-6 h-6" />
           </div>
           <div>
             <h1 className="text-xl font-bold tracking-tight text-white leading-tight">Kisan<span className="text-brand-500">Mind+</span></h1>
             <p className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">{t('smartFarmOS')}</p>
           </div>
-        </div>
+        </Link>
 
         <div className="flex items-center gap-4">
           <div className="relative group py-2">
@@ -187,7 +187,7 @@ export function Landing() {
                 </div>
               </div>
               <div className="w-full md:w-2/5 relative min-h-[250px] overflow-hidden">
-                <img src="https://images.pexels.com/photos/2165688/pexels-photo-2165688.jpeg?auto=compress&cs=tinysrgb&w=800&h=800&dpr=2" alt="Crop Scan" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity group-hover:scale-105 duration-700" />
+                <img src="/Users/yashgautam/.gemini/antigravity/brain/d0300bf6-2454-4e8e-ac75-7eacf84e17df/crop_scan_bento_1778304303383.png" alt="Crop Scan" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity group-hover:scale-105 duration-700" />
                 <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-transparent to-transparent hidden md:block"></div>
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent md:hidden"></div>
               </div>
@@ -236,7 +236,7 @@ export function Landing() {
                 </div>
               </div>
               <div className="w-full md:w-1/3 relative min-h-[250px] overflow-hidden">
-                <img src="https://images.pexels.com/photos/1400172/pexels-photo-1400172.jpeg?auto=compress&cs=tinysrgb&w=800&h=800&dpr=2" alt="Market" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity group-hover:scale-105 duration-700" />
+                <img src="/Users/yashgautam/.gemini/antigravity/brain/d0300bf6-2454-4e8e-ac75-7eacf84e17df/mandi_market_bento_1778304324118.png" alt="Market" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity group-hover:scale-105 duration-700" />
                 <div className="absolute inset-0 bg-gradient-to-l from-slate-950/80 via-transparent to-transparent hidden md:block"></div>
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent md:hidden"></div>
               </div>

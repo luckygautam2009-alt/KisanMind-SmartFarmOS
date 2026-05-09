@@ -20,15 +20,15 @@ export function Sidebar() {
   return (
     <aside className="w-64 flex flex-col h-screen bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 sticky top-0 hidden md:flex z-20 shrink-0 transition-colors duration-500">
       {/* Brand */}
-      <div className="h-20 flex items-center px-6 gap-3 border-b border-slate-200 dark:border-slate-800 shrink-0">
-        <div className="w-10 h-10 rounded-lg bg-brand-600 flex items-center justify-center shadow-sm">
+      <Link to="/dashboard" className="h-20 flex items-center px-6 gap-3 border-b border-slate-200 dark:border-slate-800 shrink-0 group hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
+        <div className="w-10 h-10 rounded-lg bg-brand-600 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
           <Sprout className="text-white w-6 h-6" />
         </div>
         <div>
           <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight">Kisan<span className="text-brand-500 dark:text-brand-400">Mind+</span></h1>
           <p className="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">{t('smartFarmOS')}</p>
         </div>
-      </div>
+      </Link>
 
       {/* Navigation */}
       <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">

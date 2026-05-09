@@ -21,7 +21,7 @@ const BLOG_POSTS = [
     author: "Dr. Rajesh Kumar",
     date: "April 28, 2026",
     category: "Organic Farming",
-    image: "https://images.unsplash.com/photo-1595113316349-9fa4ee24f884?auto=format&fit=crop&q=80&w=800",
+    image: "/Users/yashgautam/.gemini/antigravity/brain/d0300bf6-2454-4e8e-ac75-7eacf84e17df/organic_pest_control_blog_1778304020412.png",
     readTime: "8 min read"
   },
   {
@@ -40,7 +40,7 @@ const BLOG_POSTS = [
     author: "Anita Sharma",
     date: "April 25, 2026",
     category: "Soil Science",
-    image: "https://images.unsplash.com/photo-1589923188900-85dae523342b?auto=format&fit=crop&q=80&w=800",
+    image: "/Users/yashgautam/.gemini/antigravity/brain/d0300bf6-2454-4e8e-ac75-7eacf84e17df/soil_health_blog_1778304096776.png",
     readTime: "12 min read"
   },
   {
@@ -60,7 +60,7 @@ const BLOG_POSTS = [
     author: "Vikram Singh",
     date: "April 22, 2026",
     category: "Irrigation",
-    image: "https://images.unsplash.com/photo-1594498257602-32638e9858d3?auto=format&fit=crop&q=80&w=800",
+    image: "/Users/yashgautam/.gemini/antigravity/brain/d0300bf6-2454-4e8e-ac75-7eacf84e17df/drip_irrigation_blog_1778304111123.png",
     readTime: "10 min read"
   },
   {
@@ -79,7 +79,7 @@ const BLOG_POSTS = [
     author: "Legal Desk",
     date: "April 20, 2026",
     category: "Policy",
-    image: "https://images.unsplash.com/photo-1532187875605-1ff64ef4d99e?auto=format&fit=crop&q=80&w=800",
+    image: "/Users/yashgautam/.gemini/antigravity/brain/d0300bf6-2454-4e8e-ac75-7eacf84e17df/tractor_subsidies_blog_1778304176770.png",
     readTime: "15 min read"
   }
 ];
