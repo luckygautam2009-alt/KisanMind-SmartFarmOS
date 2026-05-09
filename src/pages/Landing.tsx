@@ -114,7 +114,7 @@ export function Landing() {
           animate={{ opacity: 1, y: 0 }}
           className="relative z-10 inline-flex items-center gap-2 mb-8 px-4 py-1.5 bg-brand-500/20 border border-brand-500/30 rounded-full text-brand-400 text-sm font-semibold tracking-wide backdrop-blur-md"
         >
-          <Sprout className="w-4 h-4" /> The Future of Indian Agriculture
+          <Sprout className="w-4 h-4" /> {t('heroTaglineFuture')}
         </motion.div>
 
         <motion.h2 
@@ -123,7 +123,7 @@ export function Landing() {
           transition={{ delay: 0.1 }}
           className="relative z-10 text-5xl md:text-7xl lg:text-8xl font-extrabold text-white tracking-tight mb-6 leading-tight drop-shadow-2xl"
         >
-          Grow More. <br className="hidden md:block"/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-amber-400">Waste Less.</span> Earn Better.
+          {t('heroTitleGrow')} <br className="hidden md:block"/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-amber-400">{t('heroTitleWaste')}</span> {t('heroTitleEarn')}
         </motion.h2>
 
         <motion.p 
@@ -132,7 +132,7 @@ export function Landing() {
           transition={{ delay: 0.2 }}
           className="relative z-10 text-lg md:text-xl text-slate-300 mb-10 max-w-3xl mx-auto font-medium leading-relaxed drop-shadow-md"
         >
-          KisanMind+ is an autonomous Farm OS that uses Artificial Intelligence, Satellite Data, and Computer Vision to eliminate guesswork from farming. Built for the modern farmer.
+          {t('heroSubtitleMain')}
         </motion.p>
 
         <motion.div 
@@ -142,14 +142,14 @@ export function Landing() {
           className="relative z-10 flex flex-col sm:flex-row items-center justify-center gap-4"
         >
           <Link to="/login" className="px-8 py-4 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-full shadow-[0_0_40px_rgba(16,185,129,0.4)] transition-all hover:-translate-y-1 flex items-center gap-2 text-lg">
-            Start Farming Smarter <ArrowRight className="w-5 h-5" />
+            {t('getStarted')} <ArrowRight className="w-5 h-5" />
           </Link>
           <button 
             onClick={() => setIsVideoModalOpen(true)}
             className="px-8 py-4 bg-white/10 backdrop-blur-md border border-white/20 text-white font-bold rounded-full shadow-xl transition-all hover:-translate-y-1 hover:bg-white/20 flex items-center gap-2 text-lg"
           >
             <Play className="w-5 h-5 fill-current" />
-            Watch Demo
+            {t('demoWatch')}
           </button>
         </motion.div>
       </main>
@@ -160,10 +160,10 @@ export function Landing() {
           
           <div className="text-center max-w-3xl mx-auto mb-20">
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="inline-flex px-4 py-1.5 bg-brand-500/20 text-brand-400 font-bold uppercase tracking-widest text-xs rounded-full border border-brand-500/30 mb-6">
-              Complete Farm Intelligence
+              {t('completeFarmIntelligence')}
             </motion.div>
             <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }} className="text-4xl md:text-6xl font-extrabold text-white mb-6 drop-shadow-lg">
-              Everything you need. <br/>In one platform.
+              {t('everythingYouNeed')}
             </motion.h2>
           </div>
 
@@ -178,12 +178,12 @@ export function Landing() {
                 <div className="w-16 h-16 rounded-2xl bg-brand-500/10 text-brand-500 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                   <ScanLine className="w-8 h-8" />
                 </div>
-                <h3 className="text-3xl font-bold text-white mb-4">Instant Disease Diagnosis</h3>
+                <h3 className="text-3xl font-bold text-white mb-4">{t('featureDiseaseTitle')}</h3>
                 <p className="text-slate-300 text-lg leading-relaxed mb-6">
-                  Snap a picture of any unhealthy crop. Our AI instantly diagnoses diseases and generates a precise chemical treatment and fertilizer plan.
+                  {t('featureDiseaseDesc')}
                 </p>
                 <div className="flex items-center gap-2 text-brand-400 font-semibold mt-auto">
-                  <Check className="w-5 h-5"/> 95%+ Accuracy on 50+ crops
+                  <Check className="w-5 h-5"/> {t('featureDiseaseBadge')}
                 </div>
               </div>
               <div className="w-full md:w-2/5 relative min-h-[250px] overflow-hidden">
@@ -202,16 +202,16 @@ export function Landing() {
               <div className="w-16 h-16 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform relative z-10">
                 <CloudSun className="w-8 h-8" />
               </div>
-              <h3 className="text-3xl font-bold text-white mb-4 relative z-10">Hyperlocal Weather</h3>
+              <h3 className="text-3xl font-bold text-white mb-4 relative z-10">{t('featureWeatherTitle')}</h3>
               <p className="text-slate-300 text-lg leading-relaxed relative z-10">
-                GPS-based forecasting tailored to your exact farm coordinates. Proactively delay irrigation before expected rainfall to save water.
+                {t('featureWeatherDesc')}
               </p>
               <div className="mt-auto pt-8 relative z-10">
                 <div className="bg-slate-950/50 border border-slate-700/50 rounded-xl p-4 flex items-center gap-4">
                   <CloudSun className="text-amber-400 w-8 h-8"/>
                   <div>
-                    <div className="text-white font-bold">Rain Expected</div>
-                    <div className="text-amber-400 text-sm">Tomorrow at 2 PM</div>
+                    <div className="text-white font-bold">{t('rainExpected')}</div>
+                    <div className="text-amber-400 text-sm">{t('tomorrowAt2PM')}</div>
                   </div>
                 </div>
               </div>
@@ -226,13 +226,13 @@ export function Landing() {
                 <div className="w-16 h-16 rounded-2xl bg-orange-500/10 text-orange-500 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                   <TrendingUp className="w-8 h-8" />
                 </div>
-                <h3 className="text-3xl font-bold text-white mb-4">Live Mandi Intelligence</h3>
+                <h3 className="text-3xl font-bold text-white mb-4">{t('featureMandiTitle')}</h3>
                 <p className="text-slate-300 text-lg leading-relaxed mb-6 max-w-2xl">
-                  Stop selling blind. We pull live agricultural market prices directly from the Government's Agmarknet. Compare local prices to regional hubs and decide exactly when to sell for maximum profit.
+                  {t('featureMandiDesc')}
                 </p>
                 <div className="flex flex-wrap gap-4 mt-auto">
-                  <div className="flex items-center gap-2 text-orange-400 font-semibold bg-orange-500/10 px-4 py-2 rounded-lg"><Check className="w-4 h-4"/> Track historical trends</div>
-                  <div className="flex items-center gap-2 text-orange-400 font-semibold bg-orange-500/10 px-4 py-2 rounded-lg"><Check className="w-4 h-4"/> Profit margins</div>
+                  <div className="flex items-center gap-2 text-orange-400 font-semibold bg-orange-500/10 px-4 py-2 rounded-lg"><Check className="w-4 h-4"/> {t('featureMandiCheck1')}</div>
+                  <div className="flex items-center gap-2 text-orange-400 font-semibold bg-orange-500/10 px-4 py-2 rounded-lg"><Check className="w-4 h-4"/> {t('featureMandiCheck2')}</div>
                 </div>
               </div>
               <div className="w-full md:w-1/3 relative min-h-[250px] overflow-hidden">
@@ -265,19 +265,19 @@ export function Landing() {
             </div>
             <div className="hidden md:block w-px h-6 bg-white/10"></div>
             <p className="text-sm font-medium text-slate-300">
-              &copy; 2026. <span className="hidden sm:inline">Transforming Agriculture.</span>
+              &copy; 2026. <span className="hidden sm:inline">{t('footerTaglineShort')}</span>
             </p>
           </div>
 
           {/* Links & Status */}
           <div className="flex flex-wrap justify-center items-center gap-6 text-sm font-medium text-slate-300">
-             <a href="#" className="hover:text-brand-400 transition-colors">Support</a>
-             <a href="#" className="hover:text-brand-400 transition-colors">Privacy</a>
-             <a href="#" className="hover:text-brand-400 transition-colors">Terms</a>
+             <a href="#" className="hover:text-brand-400 transition-colors">{t('supportLink')}</a>
+             <a href="#" className="hover:text-brand-400 transition-colors">{t('privacyLink')}</a>
+             <a href="#" className="hover:text-brand-400 transition-colors">{t('termsLink')}</a>
              
              <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 rounded-2xl border border-emerald-500/20 ml-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)] animate-pulse"></span>
-                <span className="text-xs font-bold text-emerald-400">All Systems Operational</span>
+                <span className="text-xs font-bold text-emerald-400">{t('allSystemsOperational')}</span>
              </div>
           </div>
 
@@ -317,14 +317,14 @@ export function Landing() {
                 >
                   <Play className="w-12 h-12 text-brand-400 fill-current" />
                 </motion.div>
-                <h3 className="text-3xl sm:text-5xl font-black text-white mb-4">Welcome to KisanMind+</h3>
+                <h3 className="text-3xl sm:text-5xl font-black text-white mb-4">{t('demoWelcome')}</h3>
                 <p className="text-lg sm:text-xl text-slate-300 max-w-2xl font-medium mb-8">
-                  The future of smart farming. Monitor crops, predict yields, analyze diseases, and navigate the market—all powered by advanced AI.
+                  {t('demoDesc')}
                 </p>
                 <div className="flex flex-wrap justify-center gap-4 hidden sm:flex">
-                  <div className="px-6 py-3 rounded-full bg-white/10 text-white text-sm font-bold backdrop-blur-md">Real-time Weather</div>
-                  <div className="px-6 py-3 rounded-full bg-white/10 text-white text-sm font-bold backdrop-blur-md">Market Intelligence</div>
-                  <div className="px-6 py-3 rounded-full bg-white/10 text-white text-sm font-bold backdrop-blur-md">AI Leaf Analysis</div>
+                  <div className="px-6 py-3 rounded-full bg-white/10 text-white text-sm font-bold backdrop-blur-md">{t('weatherRisks')}</div>
+                  <div className="px-6 py-3 rounded-full bg-white/10 text-white text-sm font-bold backdrop-blur-md">{t('mandiPrices')}</div>
+                  <div className="px-6 py-3 rounded-full bg-white/10 text-white text-sm font-bold backdrop-blur-md">{t('cropScan')}</div>
                 </div>
               </div>
             </motion.div>

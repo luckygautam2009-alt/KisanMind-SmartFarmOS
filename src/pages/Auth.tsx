@@ -23,7 +23,7 @@ export function Auth() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { user, signInWithGoogle, signInWithEmail, signUpWithEmail } = useUser();
 
   // If already signed in, redirect
@@ -82,7 +82,7 @@ export function Auth() {
         <div className="flex-1 p-8 md:p-12 xl:p-16 flex flex-col relative">
           
           <Link to="/" className="inline-flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors mb-10 w-fit">
-            <ArrowLeft className="w-4 h-4" /> Back to home
+            <ArrowLeft className="w-4 h-4" /> {t('backToHome')}
           </Link>
 
           <div className="mb-10 text-center md:text-left">
@@ -90,7 +90,7 @@ export function Auth() {
               {isLogin ? t('welcomeBack') : t('createAccount')}
             </h2>
             <p className="text-slate-600 dark:text-slate-400 text-lg transition-colors">
-              {isLogin ? 'Sign in to access your smart farm.' : 'Join the future of autonomous farming.'}
+              {isLogin ? t('signInToAccess') : t('joinFuture')}
             </p>
           </div>
 
@@ -111,12 +111,12 @@ export function Auth() {
             className="w-full flex items-center justify-center bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-semibold py-3.5 px-4 rounded-2xl transition-all mb-6 disabled:opacity-60"
           >
             {submitting ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <GoogleIcon />}
-            {isLogin ? 'Sign in with Google' : 'Sign up with Google'}
+            {isLogin ? `${t('signIn')} with Google` : `${t('signUp')} with Google`}
           </button>
 
           <div className="flex items-center gap-4 mb-6">
             <div className="flex-1 h-px bg-slate-200 dark:bg-white/10"></div>
-            <span className="text-slate-500 text-sm font-medium">OR CONTINUE WITH EMAIL</span>
+            <span className="text-slate-500 text-xs font-bold tracking-widest uppercase">{t('orContinueWithEmail')}</span>
             <div className="flex-1 h-px bg-slate-200 dark:bg-white/10"></div>
           </div>
 
@@ -176,7 +176,7 @@ export function Auth() {
 
             {isLogin && (
               <div className="flex justify-end pt-1">
-                <a href="#" className="text-sm font-medium text-brand-400 hover:text-brand-300">Forgot password?</a>
+                <a href="#" className="text-sm font-medium text-brand-400 hover:text-brand-300">{t('forgotPassword')}</a>
               </div>
             )}
 
@@ -237,13 +237,13 @@ export function Auth() {
                 ))}
               </div>
               <blockquote className="text-xl font-medium mb-6 leading-relaxed text-slate-200">
-                "Since I started using KisanMind+, my crop yield has improved by 30%. The AI tells me exactly when to spray and when to harvest."
+                {t('progressiveFarmerReview')}
               </blockquote>
               <div className="flex items-center gap-4">
                 <img src="https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2" alt="User" className="w-12 h-12 rounded-full object-cover border-2 border-brand-500" />
                 <div>
-                  <p className="font-bold text-white">Rajesh Kumar</p>
-                  <p className="text-brand-400 text-sm font-medium">Progressive Farmer</p>
+                  <p className="font-bold text-white">{t('progressiveFarmerName')}</p>
+                  <p className="text-brand-400 text-sm font-medium">{t('progressiveFarmerTitle')}</p>
                 </div>
               </div>
             </motion.div>

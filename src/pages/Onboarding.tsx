@@ -1,164 +1,213 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Check, Settings2, Moon, Sun, Monitor, Palette, Type, Globe } from 'lucide-react';
-import { useTheme } from '../contexts/ThemeContext';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Sprout, Globe, Check, ArrowRight, ShieldCheck, 
+  MapPin, Palette, Monitor, Type, Leaf
+} from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
-import heroBg from '../assets/background.jpeg';
+import { useTheme } from '../contexts/ThemeContext';
+import { useUser } from '../contexts/UserContext';
 
 export function Onboarding() {
   const navigate = useNavigate();
-  const { theme, setTheme, color, setColor, font, setFont } = useTheme();
-  const { lang, setLanguage } = useLanguage();
-
-  const colors = [
-    { id: 'emerald', name: 'Emerald (Nature)', hex: 'bg-emerald-500' },
-    { id: 'blue', name: 'Blue (Water)', hex: 'bg-blue-500' },
-    { id: 'orange', name: 'Orange (Harvest)', hex: 'bg-orange-500' },
-    { id: 'purple', name: 'Purple (Tech)', hex: 'bg-purple-500' }
-  ] as const;
-
-  const fonts = [
-    { id: 'outfit', name: 'Outfit (Modern)', class: 'font-outfit' },
-    { id: 'inter', name: 'Inter (Clean)', class: 'font-inter' },
-    { id: 'sans', name: 'Noto Sans (Reading)', class: 'font-sans' }
-  ] as const;
+  const { lang, setLanguage, t } = useLanguage();
+  const { theme, setTheme } = useTheme();
+  const { updateFarmDetails, user } = useUser();
+  const [step, setStep] = useState(1);
 
   const languages = [
-    { id: 'en', name: 'English' },
-    { id: 'hi', name: 'हिंदी' },
-    { id: 'mr', name: 'मराठी' },
-    { id: 'gu', name: 'ગુજરાતી' },
-    { id: 'ta', name: 'தமிழ்' },
-    { id: 'te', name: 'తెలుగు' },
-    { id: 'bn', name: 'বাংলা' },
-    { id: 'pa', name: 'ਪੰਜਾਬੀ' }
-  ] as const;
+    { code: 'en', label: 'English', native: 'English' },
+    { code: 'hi', label: 'Hindi', native: 'हिंदी' },
+    { code: 'pa', label: 'Punjabi', native: 'ਪੰਜਾਬੀ' },
+    { code: 'mr', label: 'Marathi', native: 'मराठी' },
+    { code: 'gu', label: 'Gujarati', native: 'ગુજરાતી' },
+    { code: 'te', label: 'Telugu', native: 'తెలుగు' },
+    { code: 'ta', label: 'Tamil', native: 'தமிழ்' },
+    { code: 'kn', label: 'Kannada', native: 'ಕನ್ನಡ' },
+    { code: 'ml', label: 'Malayalam', native: 'മലയാളം' },
+    { code: 'bn', label: 'Bengali', native: 'বাংলা' }
+  ];
+
+  const handleFinish = async () => {
+    // Basic default farm details if not set
+    if (!user?.farmDetails.primaryCrop) {
+      await updateFarmDetails({
+        primaryCrop: 'Wheat',
+        secondaryCrop: 'Mustard',
+        totalLand: '5',
+        soilType: 'Loamy'
+      });
+    }
+    navigate('/dashboard');
+  };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden bg-slate-50 dark:bg-slate-950 transition-colors duration-500">
-      
-      {/* Background Image & Overlay */}
-      <div className="absolute inset-0 z-0">
-        <img src={heroBg} alt="Farm Background" className="w-full h-full object-cover opacity-10 dark:opacity-30 blur-md scale-105 transition-opacity duration-500" />
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-100/80 via-slate-50/60 to-slate-50/90 dark:from-slate-950/80 dark:via-slate-950/60 dark:to-slate-950/90 transition-colors duration-500"></div>
-      </div>
-
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ type: "spring", damping: 25, stiffness: 100 }}
-        className="w-full max-w-5xl bg-white/60 dark:bg-slate-900/40 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-[2.5rem] shadow-2xl dark:shadow-[0_0_60px_rgba(0,0,0,0.6)] p-8 lg:p-12 z-10 transition-colors duration-500"
-      >
-        <div className="text-center mb-12">
-          <motion.div 
-            initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: "spring" }}
-            className="w-20 h-20 bg-brand-100 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-brand-200 dark:border-brand-500/30 shadow-[0_0_30px_rgba(16,185,129,0.2)]"
-          >
-            <Settings2 className="w-10 h-10" />
-          </motion.div>
-          <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white mb-4 tracking-tight">Configure Your Farm OS</h1>
-          <p className="text-slate-600 dark:text-slate-400 text-lg">Personalize KisanMind+ to suit your environment and preferences.</p>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-6 transition-colors duration-500">
+      <div className="max-w-2xl w-full">
+        
+        {/* Progress Bar */}
+        <div className="flex gap-2 mb-12">
+          {[1, 2, 3].map((s) => (
+            <div 
+              key={s}
+              className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${
+                s <= step ? 'bg-brand-600' : 'bg-slate-200 dark:bg-slate-800'
+              }`}
+            />
+          ))}
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-12">
-          
-          {/* Left Column: Language */}
-          <div className="space-y-6">
-            <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-3 border-b border-slate-200 dark:border-white/10 pb-4">
-              <Globe className="w-6 h-6 text-brand-500 dark:text-brand-400" /> Language / भाषा
-            </h3>
-            <div className="grid grid-cols-2 gap-4">
-              {languages.map((l) => (
-                <button
-                  key={l.id}
-                  onClick={() => setLanguage(l.id as any)}
-                  className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${
-                    lang === l.id 
-                      ? 'border-brand-500 bg-brand-50 dark:bg-brand-500/20 text-brand-700 dark:text-white shadow-[0_0_20px_rgba(16,185,129,0.2)]' 
-                      : 'border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
-                  }`}
-                >
-                  <span className="font-semibold text-lg">{l.name}</span>
-                  {lang === l.id && <Check className="w-5 h-5 text-brand-400" />}
-                </button>
-              ))}
-            </div>
+        <motion.div
+          key={step}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          className="glass-panel p-8 md:p-12 rounded-[2.5rem] bg-white dark:bg-slate-900 shadow-2xl"
+        >
+          <div className="mb-8">
+            <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white mb-4 tracking-tight">
+              {t('configureFarmOs')}
+            </h1>
+            <p className="text-slate-600 dark:text-slate-400 text-lg">
+              {t('personalizeFarmOs')}
+            </p>
           </div>
 
-          {/* Right Column: Personalization */}
-          <div className="space-y-10">
-            
-            {/* Theme Mode */}
+          {step === 1 && (
             <div className="space-y-6">
-              <h3 className="text-xl font-bold text-white flex items-center gap-3 border-b border-white/10 pb-4">
-                <Monitor className="w-6 h-6 text-blue-400" /> Appearance Mode
-              </h3>
-              <div className="flex gap-4">
-                <button onClick={() => setTheme('light')} className={`flex-1 flex flex-col items-center gap-3 p-5 rounded-2xl border transition-all ${theme === 'light' ? 'border-brand-500 bg-brand-500/20' : 'border-white/10 bg-white/5 hover:bg-white/10'}`}>
-                  <Sun className={`w-8 h-8 ${theme === 'light' ? 'text-brand-400' : 'text-slate-400'}`} />
-                  <span className={`font-bold ${theme === 'light' ? 'text-white' : 'text-slate-400'}`}>Light</span>
-                </button>
-                <button onClick={() => setTheme('dark')} className={`flex-1 flex flex-col items-center gap-3 p-5 rounded-2xl border transition-all ${theme === 'dark' ? 'border-brand-500 bg-brand-500/20 shadow-[0_0_20px_rgba(16,185,129,0.2)]' : 'border-white/10 bg-white/5 hover:bg-white/10'}`}>
-                  <Moon className={`w-8 h-8 ${theme === 'dark' ? 'text-brand-400' : 'text-slate-400'}`} />
-                  <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-400'}`}>Dark</span>
-                </button>
+              <div className="flex items-center gap-3 mb-6">
+                <Globe className="w-6 h-6 text-brand-500 dark:text-brand-400" />
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white uppercase tracking-wider">{t('operatingLanguage')}</h3>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {languages.map((l) => (
+                  <button
+                    key={l.code}
+                    onClick={() => setLanguage(l.code as any)}
+                    className={`p-4 rounded-2xl border-2 transition-all text-left group ${
+                      lang === l.code 
+                        ? 'border-brand-600 bg-brand-50/50 dark:bg-brand-900/20' 
+                        : 'border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700'
+                    }`}
+                  >
+                    <div className={`text-xs font-black uppercase mb-1 ${lang === l.code ? 'text-brand-600' : 'text-slate-400'}`}>
+                      {l.label}
+                    </div>
+                    <div className={`text-lg font-bold ${lang === l.code ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-400'}`}>
+                      {l.native}
+                    </div>
+                  </button>
+                ))}
               </div>
             </div>
+          )}
 
-            {/* Colors */}
-            <div className="space-y-6">
-              <h3 className="text-xl font-bold text-white flex items-center gap-3 border-b border-white/10 pb-4">
-                <Palette className="w-6 h-6 text-orange-400" /> Color Accent
-              </h3>
+          {step === 2 && (
+            <div className="space-y-8">
+              <div className="flex items-center gap-3">
+                <Monitor className="w-6 h-6 text-blue-400" />
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white uppercase tracking-wider">{t('appearanceMode')}</h3>
+              </div>
               <div className="grid grid-cols-2 gap-4">
-                {colors.map((c) => (
+                {['light', 'dark'].map((t_mode) => (
                   <button
-                    key={c.id}
-                    onClick={() => setColor(c.id)}
-                    className={`flex items-center gap-4 px-5 py-4 rounded-2xl border transition-all ${
-                      color === c.id ? 'border-brand-500 bg-brand-500/20 shadow-[0_0_20px_rgba(16,185,129,0.2)]' : 'border-white/10 bg-white/5 hover:bg-white/10'
+                    key={t_mode}
+                    onClick={() => setTheme(t_mode as any)}
+                    className={`p-6 rounded-3xl border-2 transition-all text-center group ${
+                      theme === t_mode 
+                        ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-900/20' 
+                        : 'border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700'
                     }`}
                   >
-                    <div className={`w-6 h-6 rounded-full ${c.hex} shadow-sm ring-2 ring-offset-2 ${color === c.id ? 'ring-white/50 ring-offset-slate-900' : 'ring-transparent'}`}></div>
-                    <span className={`font-bold ${color === c.id ? 'text-white' : 'text-slate-300'}`}>{c.name}</span>
+                    <div className={`w-12 h-12 rounded-full mx-auto mb-4 flex items-center justify-center transition-transform group-hover:scale-110 ${
+                      t_mode === 'light' ? 'bg-amber-100 text-amber-600' : 'bg-slate-800 text-slate-400'
+                    }`}>
+                      {t_mode === 'light' ? <Palette className="w-6 h-6" /> : <Monitor className="w-6 h-6" />}
+                    </div>
+                    <div className="font-bold text-slate-900 dark:text-white capitalize">{t(t_mode as any)}</div>
                   </button>
                 ))}
               </div>
-            </div>
 
-            {/* Typography */}
-            <div className="space-y-6">
-              <h3 className="text-xl font-bold text-white flex items-center gap-3 border-b border-white/10 pb-4">
-                <Type className="w-6 h-6 text-rose-400" /> Typography
-              </h3>
-              <div className="flex flex-col gap-4">
-                {fonts.map((f) => (
-                  <button
-                    key={f.id}
-                    onClick={() => setFont(f.id)}
-                    className={`flex items-center justify-between p-5 rounded-2xl border transition-all ${f.class} ${
-                      font === f.id ? 'border-brand-500 bg-brand-500/20 text-white shadow-[0_0_20px_rgba(16,185,129,0.2)]' : 'border-white/10 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white'
-                    }`}
-                  >
-                    <span className="text-xl font-semibold">{f.name}</span>
-                    {font === f.id && <Check className="w-6 h-6 text-brand-400" />}
-                  </button>
-                ))}
+              <div className="pt-4">
+                <div className="flex items-center gap-3 mb-6">
+                  <Palette className="w-6 h-6 text-orange-400" />
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white uppercase tracking-wider">{t('colorAccent')}</h3>
+                </div>
+                <div className="flex flex-wrap gap-4">
+                  {['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'].map((color) => (
+                    <button
+                      key={color}
+                      className="w-12 h-12 rounded-2xl shadow-lg hover:scale-110 transition-transform flex items-center justify-center border-4 border-white dark:border-slate-800"
+                      style={{ backgroundColor: color }}
+                    >
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
+          )}
 
+          {step === 3 && (
+            <div className="space-y-8 text-center">
+              <div className="w-24 h-24 bg-brand-100 dark:bg-brand-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                <ShieldCheck className="w-12 h-12 text-brand-600" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2 uppercase tracking-widest">{t('allSystemsGo')}</h3>
+                <p className="text-slate-600 dark:text-slate-400">
+                  Your Farm OS is optimized and ready for deployment.
+                </p>
+              </div>
+              
+              <div className="pt-4">
+                <div className="flex items-center gap-3 mb-6 justify-center">
+                  <Type className="w-6 h-6 text-rose-400" />
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white uppercase tracking-wider">{t('typographyTitle')}</h3>
+                </div>
+                <div className="p-6 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-100 dark:border-slate-800">
+                  <p className="text-slate-900 dark:text-white font-medium italic">
+                    "The quick brown fox jumps over the lazy dog."
+                  </p>
+                  <p className="text-xs text-slate-400 mt-2">Outfit Sans-Serif (Default)</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="mt-12 flex justify-between items-center">
+            {step > 1 ? (
+              <button
+                onClick={() => setStep(s => s - 1)}
+                className="text-slate-500 font-bold hover:text-slate-900 dark:hover:text-white transition-colors"
+              >
+                Back
+              </button>
+            ) : <div />}
+            
+            {step < 3 ? (
+              <button
+                onClick={() => setStep(s => s + 1)}
+                className="px-10 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-black shadow-xl hover:scale-105 transition-all flex items-center gap-2"
+              >
+                Continue <ArrowRight className="w-5 h-5" />
+              </button>
+            ) : (
+              <button
+                onClick={handleFinish}
+                className="px-10 py-4 bg-brand-600 text-white rounded-2xl font-black shadow-xl shadow-brand-600/30 hover:scale-105 transition-all flex items-center gap-2"
+              >
+                {t('launchDashboard')} <Check className="w-6 h-6" />
+              </button>
+            )}
           </div>
+        </motion.div>
+        
+        <div className="mt-8 flex items-center justify-center gap-2 text-slate-400 text-sm font-medium">
+          <ShieldCheck className="w-4 h-4" /> Secure Onboarding Protocol
         </div>
-
-        <div className="mt-16 flex justify-end pt-8 border-t border-white/10">
-          <button 
-            onClick={() => navigate('/dashboard')}
-            className="px-10 py-4 bg-brand-600 hover:bg-brand-500 text-white text-lg font-bold rounded-2xl shadow-[0_0_30px_rgba(16,185,129,0.4)] transition-all flex items-center gap-3 hover:-translate-y-1"
-          >
-            Launch Dashboard <Check className="w-6 h-6" />
-          </button>
-        </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

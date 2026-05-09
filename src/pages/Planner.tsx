@@ -28,6 +28,8 @@ interface Message {
   content: string;
 }
 
+import { FarmTimetableWidget } from '../components/widgets/FarmTimetableWidget';
+
 export function Planner() {
   const [reportText, setReportText] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
@@ -177,19 +179,11 @@ export function Planner() {
         <div className="md:col-span-1">
           <YieldPredictionWidget />
         </div>
-        <div className="glass-panel p-6 rounded-3xl h-full flex flex-col justify-center">
-           <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-brand-500" /> {t('yieldProj')}
-           </h3>
-           <p className="text-slate-600 dark:text-slate-400 text-sm mb-4">
-             {t('yieldProjDesc')}
-           </p>
-           <div className="h-2 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-             <div className="h-full bg-brand-500 w-[85%]"></div>
-           </div>
-           <p className="text-right text-xs mt-1 text-slate-500 font-bold">{t('optimizationLabel')}</p>
+        <div className="md:col-span-1">
+          <FarmTimetableWidget />
         </div>
       </div>
+
 
       <div className="mt-4">
         <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-1">{t('genTimetable')}</h2>
