@@ -14,7 +14,7 @@ export function Sidebar() {
     { icon: Calendar, label: t('farmPlanner') || 'Farm Planner', href: '/dashboard/planner' },
     { icon: TrendingUp, label: t('mandiPrices') || 'Mandi Prices', href: '/dashboard/market' },
     { icon: CloudSun, label: t('weatherRisks') || 'Weather & Risks', href: '/dashboard/weather' },
-    { icon: BookOpen, label: "Farmer Blogs", href: '/dashboard/blogs' },
+    { icon: BookOpen, label: t('farmerBlogs'), href: '/dashboard/blogs' },
   ];
 
   return (

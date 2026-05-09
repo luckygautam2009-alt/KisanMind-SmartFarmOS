@@ -1,13 +1,15 @@
-import { Bell, Mic, Search, Menu, Sun, Moon, Globe, AlertTriangle, Sprout, Tractor, X, Send } from 'lucide-react';
+import { Bell, Mic, Search, Menu, Sun, Moon, Globe, AlertTriangle, Sprout, Tractor, X, Send, User } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Link } from 'react-router-dom';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Markdown from 'react-markdown';
+import { useUser } from '../../contexts/UserContext';
 
 export function Header() {
   const { lang, setLanguage, t } = useLanguage();
+  const { user } = useUser();
   const { theme, toggleTheme } = useTheme();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showVoiceChat, setShowVoiceChat] = useState(false);
@@ -33,11 +35,14 @@ export function Header() {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
-  const notifications = [
-    { title: 'Heavy Rainfall Alert', desc: 'Delay pesticide spray today.', icon: AlertTriangle, color: 'text-red-500', bg: 'bg-red-50 dark:bg-red-500/10' },
-    { title: 'Yellow Rust Warning', desc: 'Detected in neighboring farm.', icon: Sprout, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-500/10' },
-    { title: 'Harvest Window', desc: 'Optimal conditions next Thursday.', icon: Tractor, color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-500/10' },
-  ];
+  const notifications = useMemo(
+    () => [
+      { title: t('notif1Title'), desc: t('notif1Desc'), icon: AlertTriangle, color: 'text-red-500', bg: 'bg-red-50 dark:bg-red-500/10' },
+      { title: t('notif2Title'), desc: t('notif2Desc'), icon: Sprout, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-500/10' },
+      { title: t('notif3Title'), desc: t('notif3Desc'), icon: Tractor, color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-500/10' },
+    ],
+    [t]
+  );
 
   const handleChatSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,7 +84,19 @@ export function Header() {
       return;
     }
     const recognition = new SpeechRecognition();
-    recognition.lang = lang === 'en' ? 'en-US' : (lang === 'hi' ? 'hi-IN' : 'en-US'); // Fallbacks based on context lang
+    const speechMap: Record<string, string> = {
+      en: 'en-US',
+      hi: 'hi-IN',
+      mr: 'mr-IN',
+      gu: 'gu-IN',
+      ta: 'ta-IN',
+      te: 'te-IN',
+      kn: 'kn-IN',
+      ml: 'ml-IN',
+      bn: 'bn-IN',
+      pa: 'pa-IN',
+    };
+    recognition.lang = speechMap[lang] || 'en-US';
     recognition.continuous = false;
     recognition.interimResults = false;
 
@@ -177,8 +194,8 @@ export function Header() {
                   className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 overflow-hidden"
                 >
                   <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
-                    <h3 className="font-bold text-slate-900 dark:text-white">Notifications</h3>
-                    <span className="text-xs font-semibold bg-brand-100 dark:bg-brand-500/20 text-brand-700 dark:text-brand-300 px-2 py-0.5 rounded-full">3 New</span>
+                    <h3 className="font-bold text-slate-900 dark:text-white">{t('notificationsTitle')}</h3>
+                    <span className="text-xs font-semibold bg-brand-100 dark:bg-brand-500/20 text-brand-700 dark:text-brand-300 px-2 py-0.5 rounded-full">{t('newBadge')}</span>
                   </div>
                   <div className="max-h-[300px] overflow-y-auto">
                     {notifications.map((notif, i) => (
@@ -194,7 +211,7 @@ export function Header() {
                     ))}
                   </div>
                   <div className="p-3 text-center border-t border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer">
-                    <span className="text-sm font-medium text-brand-600 dark:text-brand-400">View All Updates</span>
+                    <span className="text-sm font-medium text-brand-600 dark:text-brand-400">{t('viewAll')}</span>
                   </div>
                 </motion.div>
               )}
@@ -202,8 +219,12 @@ export function Header() {
           </div>
 
           {/* User Avatar */}
-          <Link to="/dashboard/profile" className="w-8 h-8 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700 hover:border-brand-500 transition-colors shrink-0 ml-1 block">
-            <img src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="Farmer Profile" className="w-full h-full object-cover" />
+          <Link to="/dashboard/profile" className="w-8 h-8 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700 hover:border-brand-500 transition-colors shrink-0 ml-1 block bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
+            {user?.photoURL ? (
+              <img src={user.photoURL} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <User className="w-4 h-4 text-slate-500" />
+            )}
           </Link>
         </div>
       </header>
@@ -217,13 +238,13 @@ export function Header() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowVoiceChat(false)}
-              className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50"
+              className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[90]"
             />
             <motion.div 
               initial={{ opacity: 0, y: 100, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 100, scale: 0.95 }}
-              className="fixed bottom-4 sm:bottom-10 right-4 sm:right-10 w-[calc(100vw-32px)] sm:w-[450px] h-[500px] max-h-[80vh] flex flex-col bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl z-50 overflow-hidden"
+              className="fixed bottom-4 sm:bottom-10 right-4 sm:right-10 w-[calc(100vw-32px)] sm:w-[450px] h-[500px] max-h-[80vh] flex flex-col bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl z-[95] overflow-hidden"
             >
               {/* Chat Header */}
               <div className="px-6 py-4 bg-gradient-to-r from-brand-600 to-emerald-500 flex justify-between items-center text-white shrink-0">
@@ -232,8 +253,8 @@ export function Header() {
                     <Mic className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                     <h3 className="font-bold text-lg">KisanVoice AI</h3>
-                     <p className="text-white/80 text-xs">Always here to help you farm better.</p>
+                     <h3 className="font-bold text-lg">{t('voiceModalTitle')}</h3>
+                     <p className="text-white/80 text-xs">{t('voiceModalSub')}</p>
                   </div>
                 </div>
                 <button onClick={() => setShowVoiceChat(false)} className="p-2 hover:bg-white/20 rounded-full transition-colors">
@@ -248,7 +269,7 @@ export function Header() {
                     <Sprout className="w-4 h-4 text-brand-600 dark:text-brand-400" />
                   </div>
                   <div className="bg-white dark:bg-slate-800 p-3 rounded-2xl rounded-tl-none border border-slate-200 dark:border-slate-700 text-sm text-slate-800 dark:text-slate-200 shadow-sm max-w-[85%]">
-                    Hello! I'm your AI farming assistant. Ask me about weather, crop diseases, or mandi prices!
+                    {t('voiceWelcome')}
                   </div>
                 </div>
 
@@ -296,7 +317,7 @@ export function Header() {
                      type="text" 
                      value={query}
                      onChange={(e) => setQuery(e.target.value)}
-                     placeholder={isListening ? "Listening..." : "Type or speak your question..."} 
+                     placeholder={isListening ? t('voiceListening') : t('voiceInputPh')} 
                      className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full pl-10 pr-12 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-white"
                    />
                    <button 

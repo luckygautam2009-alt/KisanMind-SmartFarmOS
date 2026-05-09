@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import {
   onAuthStateChanged,
   signInWithPopup,
@@ -13,6 +13,7 @@ import {
   collection, addDoc, getDocs, query, where, orderBy, deleteDoc
 } from 'firebase/firestore';
 import { auth, db, googleProvider } from '../lib/firebase';
+import type { Language } from './LanguageContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface FarmDetails {
@@ -29,6 +30,7 @@ export interface UserData {
   phone: string;
   membership: string;
   photoURL?: string;
+  preferredLanguage?: Language;
   farmDetails: FarmDetails;
 }
 
@@ -212,7 +214,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   };
 
   // ── Firestore Updates ─────────────────────────────────────────────────────
-  const updateUser = async (data: Partial<UserData>) => {
+  const updateUser = useCallback(async (data: Partial<UserData>) => {
     if (!firebaseUser) return;
     const ref = doc(db, 'users', firebaseUser.uid);
     await updateDoc(ref, data as Record<string, unknown>);
@@ -227,7 +229,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         // Firestore profile still updates; Auth may reject very long or non-HTTP photo URLs.
       }
     }
-  };
+  }, [firebaseUser]);
 
   const updateFarmDetails = async (data: Partial<FarmDetails>) => {
     if (!firebaseUser || !user) return;

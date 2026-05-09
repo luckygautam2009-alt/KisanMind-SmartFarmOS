@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import { Layout } from './components/ui/Layout';
 import { Dashboard } from './pages/Dashboard';
@@ -18,7 +18,38 @@ import { Blogs } from './pages/Blogs';
 import { Settings } from './pages/Settings';
 import { Profile } from './pages/Profile';
 import { Loader3D } from './components/ui/Loader3D';
-import { UserProvider } from './contexts/UserContext';
+import { UserProvider, useUser } from './contexts/UserContext';
+import { useLanguage } from './contexts/LanguageContext';
+import { translations } from './lib/translations';
+
+function LanguagePreferenceBridge() {
+  const { lang, setLanguage } = useLanguage();
+  const { user, firebaseUser, updateUser } = useUser();
+  const hydrated = useRef(false);
+
+  useEffect(() => {
+    if (!firebaseUser) hydrated.current = false;
+  }, [firebaseUser]);
+
+  useEffect(() => {
+    if (!user?.preferredLanguage) return;
+    if (!(user.preferredLanguage in translations)) return;
+    if (hydrated.current) return;
+    setLanguage(user.preferredLanguage);
+    hydrated.current = true;
+  }, [user?.id, user?.preferredLanguage, setLanguage]);
+
+  useEffect(() => {
+    if (!firebaseUser || !user) return;
+    if (user.preferredLanguage === lang) return;
+    const t = window.setTimeout(() => {
+      updateUser({ preferredLanguage: lang });
+    }, 400);
+    return () => clearTimeout(t);
+  }, [lang, firebaseUser?.uid, user?.id, user?.preferredLanguage, updateUser]);
+
+  return null;
+}
 
 function DashboardLayout() {
   return (
@@ -68,6 +99,7 @@ function MainApp() {
 export default function App() {
   return (
     <UserProvider>
+      <LanguagePreferenceBridge />
       <MainApp />
     </UserProvider>
   );

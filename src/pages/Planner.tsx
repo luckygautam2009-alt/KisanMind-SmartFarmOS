@@ -6,6 +6,8 @@ import { useLocation } from '../contexts/LocationContext';
 import { YieldPredictionWidget } from '../components/widgets/YieldPredictionWidget';
 import { useUser } from '../contexts/UserContext';
 import { postAi } from '../lib/aiClient';
+import { useLanguage } from '../contexts/LanguageContext';
+import { SAMPLE_CROP_REPORT, SAMPLE_FARM_TIMETABLE } from '../lib/sampleFarmPlan';
 
 async function fetchWeatherSnippet(lat: number, lng: number): Promise<string> {
   try {
@@ -39,6 +41,7 @@ export function Planner() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { location } = useLocation();
   const { firebaseUser, timetables, saveTimetable, user } = useUser();
+  const { t } = useLanguage();
 
   const scheduleDayBlocks = useMemo(() => {
     if (!schedule) return [];
@@ -166,8 +169,8 @@ export function Planner() {
   return (
     <div className="max-w-4xl mx-auto flex-1 w-full flex flex-col pt-6 pb-12 gap-6">
       <div className="mb-2">
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Smart Farm Planner</h1>
-        <p className="text-slate-600 dark:text-slate-400">Manage time, increase yield, and forecast output.</p>
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">{t('plannerTitle')}</h1>
+        <p className="text-slate-600 dark:text-slate-400">{t('plannerSubtitle')}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -176,40 +179,66 @@ export function Planner() {
         </div>
         <div className="glass-panel p-6 rounded-3xl h-full flex flex-col justify-center">
            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-brand-500" /> Yield Projections
+            <TrendingUp className="w-5 h-5 text-brand-500" /> {t('yieldProj')}
            </h3>
            <p className="text-slate-600 dark:text-slate-400 text-sm mb-4">
-             Current season projections are trending positive. Use the planner below to stick to the exact AI-generated timetables to maximize this potential output.
+             {t('yieldProjDesc')}
            </p>
            <div className="h-2 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
              <div className="h-full bg-brand-500 w-[85%]"></div>
            </div>
-           <p className="text-right text-xs mt-1 text-slate-500 font-bold">85% Optimization</p>
+           <p className="text-right text-xs mt-1 text-slate-500 font-bold">{t('optimizationLabel')}</p>
         </div>
       </div>
 
       <div className="mt-4">
-        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-1">Generate Timetable</h2>
-        <p className="text-slate-500 text-sm mb-6">Upload your crop analysis report to generate a precisely timed action plan for watering, fertilizing, and treatments based on weather constraints.</p>
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-1">{t('genTimetable')}</h2>
+        <p className="text-slate-500 text-sm mb-3">{t('genTimetableDesc')}</p>
+
+        <div className="flex flex-wrap items-center gap-2 mb-2">
+          <button
+            type="button"
+            onClick={() => {
+              setReportText(SAMPLE_CROP_REPORT);
+              setFileName('sample-report.md');
+              setSchedule(null);
+              setMessages([]);
+            }}
+            className="px-4 py-2 rounded-full text-sm font-bold bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-brand-500 transition-colors"
+          >
+            {t('loadSampleReport')}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setSchedule(SAMPLE_FARM_TIMETABLE.trim());
+              setMessages([]);
+            }}
+            className="px-4 py-2 rounded-full text-sm font-bold bg-brand-600 text-white hover:bg-brand-500 shadow-md shadow-brand-500/25 transition-colors"
+          >
+            {t('loadDemoTimetable')}
+          </button>
+        </div>
+        <p className="text-xs text-slate-500 mb-6">{t('demoPlanHint')}</p>
 
         {firebaseUser && timetables.length > 0 && (
           <div className="glass-panel p-4 rounded-2xl mb-6 border border-slate-200 dark:border-slate-700">
             <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
-              <FolderOpen className="w-4 h-4 text-brand-500" /> Saved plans
+              <FolderOpen className="w-4 h-4 text-brand-500" /> {t('savedPlans')}
             </h3>
             <div className="flex flex-wrap gap-2">
-              {timetables.slice(0, 8).map((t) => (
+              {timetables.slice(0, 8).map((plan) => (
                 <button
-                  key={t.id}
+                  key={plan.id}
                   type="button"
                   onClick={() => {
-                    setSchedule(t.content);
+                    setSchedule(plan.content);
                     setMessages([]);
                   }}
                   className="text-left px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-brand-50 dark:hover:bg-brand-900/30 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-800 dark:text-slate-200 max-w-[220px] truncate"
-                  title={t.title}
+                  title={plan.title}
                 >
-                  {t.title}
+                  {plan.title}
                 </button>
               ))}
             </div>
@@ -225,11 +254,11 @@ export function Planner() {
             <div className="w-20 h-20 rounded-full bg-brand-100 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 flex items-center justify-center mb-6 shadow-xl shadow-brand-500/10">
               <Calendar className="w-10 h-10" />
             </div>
-            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Upload Analysis Report</h3>
-            <p className="text-slate-500 dark:text-slate-400 max-w-sm mb-6 text-center">Select the report you downloaded from the Crop Scanner (.md, .txt).</p>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{t('uploadReportTitle')}</h3>
+            <p className="text-slate-500 dark:text-slate-400 max-w-sm mb-6 text-center">{t('uploadReportHint')}</p>
             
             <button className="px-6 py-3 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-full shadow-lg shadow-brand-500/30 transition-all flex items-center gap-2">
-              <UploadCloud className="w-5 h-5" /> Select File
+              <UploadCloud className="w-5 h-5" /> {t('selectReportFile')}
             </button>
           </div>
         ) : (
@@ -241,7 +270,7 @@ export function Planner() {
                   </div>
                   <div>
                     <h4 className="font-bold text-slate-900 dark:text-white">{fileName}</h4>
-                    <p className="text-xs text-slate-500">Report loaded successfully</p>
+                    <p className="text-xs text-slate-500">{t('reportLoaded')}</p>
                   </div>
                </div>
                <button onClick={clearFile} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-full transition-colors">
@@ -257,9 +286,9 @@ export function Planner() {
                   className="px-8 py-3 bg-brand-600 hover:bg-brand-500 active:scale-95 disabled:hover:scale-100 disabled:opacity-50 text-white font-bold rounded-full shadow-xl shadow-brand-500/30 transition-all flex items-center gap-2"
                 >
                   {loading ? (
-                    <><RefreshCw className="w-5 h-5 animate-spin" /> Generating Timetable...</>
+                    <><RefreshCw className="w-5 h-5 animate-spin" /> {t('generatingPlan')}</>
                   ) : (
-                    <><Calendar className="w-5 h-5" /> Generate Action Plan</>
+                    <><Calendar className="w-5 h-5" /> {t('genActionPlan')}</>
                   )}
                 </button>
               </div>
@@ -277,17 +306,17 @@ export function Planner() {
                     <Calendar className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white">7-Day Precision Farm Timetable</h3>
-                    <p className="text-sm text-brand-500 dark:text-brand-400 font-semibold">Optimized by AgriVision Planner AI</p>
+                    <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white">{t('timetableHeading')}</h3>
+                    <p className="text-sm text-brand-500 dark:text-brand-400 font-semibold">{t('timetableAIByline')}</p>
                   </div>
                 </div>
 
                 {/* Legend */}
                 <div className="flex flex-wrap gap-3 mb-6">
-                  <span className="flex items-center gap-2 text-xs font-bold px-3 py-1.5 bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 rounded-full">💧 Watering</span>
-                  <span className="flex items-center gap-2 text-xs font-bold px-3 py-1.5 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 rounded-full">🧪 Fertilizer</span>
-                  <span className="flex items-center gap-2 text-xs font-bold px-3 py-1.5 bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-300 rounded-full">🛡️ Pest Control</span>
-                  <span className="flex items-center gap-2 text-xs font-bold px-3 py-1.5 bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 rounded-full">👁️ Monitoring</span>
+                  <span className="flex items-center gap-2 text-xs font-bold px-3 py-1.5 bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 rounded-full">💧 {t('legendWater')}</span>
+                  <span className="flex items-center gap-2 text-xs font-bold px-3 py-1.5 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 rounded-full">🧪 {t('legendFert')}</span>
+                  <span className="flex items-center gap-2 text-xs font-bold px-3 py-1.5 bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-300 rounded-full">🛡️ {t('legendPest')}</span>
+                  <span className="flex items-center gap-2 text-xs font-bold px-3 py-1.5 bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 rounded-full">👁️ {t('legendMonitor')}</span>
                 </div>
 
                 {/* Day Cards */}
@@ -330,7 +359,7 @@ export function Planner() {
                         <div className={`bg-gradient-to-r ${gradientColor} px-6 py-4 flex items-center justify-between`}>
                           <div>
                             <span className="text-white/70 text-xs font-bold uppercase tracking-widest">{dayLabel}</span>
-                            <h4 className="text-white font-extrabold text-lg leading-tight">{dayTitle || 'Action Day'}</h4>
+                            <h4 className="text-white font-extrabold text-lg leading-tight">{dayTitle || t('actionDayFallback')}</h4>
                           </div>
                           <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white font-black text-lg">
                             {dayIndex + 1}
@@ -362,7 +391,7 @@ export function Planner() {
                               </div>
                             );
                           }) : (
-                            <p className="text-sm text-slate-400 italic px-2">Continue monitoring and follow prior day instructions.</p>
+                            <p className="text-sm text-slate-400 italic px-2">{t('plannerContinueMonitoring')}</p>
                           )}
                         </div>
                       </motion.div>
@@ -379,7 +408,7 @@ export function Planner() {
                       className="px-6 py-2.5 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-full text-sm font-bold flex items-center gap-2 hover:opacity-90 disabled:opacity-50"
                     >
                       {savingPlan ? <RefreshCw className="w-4 h-4 animate-spin" /> : <BookmarkPlus className="w-4 h-4" />}
-                      Save plan to cloud
+                      {t('savePlanCloud')}
                     </button>
                   </div>
                 )}
@@ -398,15 +427,15 @@ export function Planner() {
                     <Bot className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-black text-slate-900 dark:text-white leading-tight">Assistant</h3>
-                    <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Inquire about your plan</p>
+                    <h3 className="text-lg font-black text-slate-900 dark:text-white leading-tight">{t('plannerAssistTitle')}</h3>
+                    <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">{t('plannerAssistSub')}</p>
                   </div>
                 </div>
 
                 <div className="space-y-4 mb-6 max-h-[400px] overflow-y-auto pr-2 scrollbar-hide">
                   {messages.length === 0 && (
                     <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl text-center">
-                      <p className="text-sm text-slate-500 font-medium italic">Ask me anything about your fertilizer schedule or watering times...</p>
+                      <p className="text-sm text-slate-500 font-medium italic">{t('plannerChatEmpty')}</p>
                     </div>
                   )}
                   {messages.map((m, i) => (
@@ -430,7 +459,7 @@ export function Planner() {
                     <div className="flex justify-start">
                       <div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-2xl rounded-tl-none flex items-center gap-2">
                         <RefreshCw className="w-4 h-4 animate-spin text-brand-500" />
-                        <span className="text-xs font-bold text-slate-500">AI is thinking...</span>
+                        <span className="text-xs font-bold text-slate-500">{t('plannerThinking')}</span>
                       </div>
                     </div>
                   )}
@@ -442,7 +471,7 @@ export function Planner() {
                     type="text" 
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
-                    placeholder="Ask about fertilizer dosage, water timings..."
+                    placeholder={t('plannerChatPh')}
                     className="w-full pl-6 pr-16 py-4 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:border-brand-500 transition-all font-medium text-slate-900 dark:text-white"
                   />
                   <button 

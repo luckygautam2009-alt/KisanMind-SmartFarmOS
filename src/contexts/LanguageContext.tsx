@@ -1,7 +1,7 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { translations, TranslationKey } from '../lib/translations';
+import { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
+import { translations, resolveTranslations, TranslationKey } from '../lib/translations';
 
-type Language = 'en' | 'hi' | 'mr' | 'gu' | 'ta' | 'te' | 'bn' | 'pa' | 'kn' | 'ml';
+export type Language = keyof typeof translations;
 
 interface LanguageContextType {
   lang: Language;
@@ -18,7 +18,13 @@ const LanguageContext = createContext<LanguageContextType>({
 });
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLang] = useState<Language>(() => (localStorage.getItem('kisanmind_lang') as Language) || 'en');
+  const [lang, setLang] = useState<Language>(() => {
+    const stored = localStorage.getItem('kisanmind_lang');
+    if (stored && stored in translations) return stored as Language;
+    return 'en';
+  });
+
+  const dict = useMemo(() => resolveTranslations(lang), [lang]);
 
   const setLanguage = (newLang: Language) => {
     setLang(newLang);
@@ -42,9 +48,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     }
   }, [lang]);
 
-  const t = (key: TranslationKey): string => {
-    return (translations[lang] && translations[lang][key as string]) || translations['en']?.[key as string] || key;
-  };
+  const t = useCallback((key: TranslationKey) => dict[key] ?? key, [dict]);
 
   return (
     <LanguageContext.Provider value={{ lang, setLanguage, toggleLanguage, t }}>

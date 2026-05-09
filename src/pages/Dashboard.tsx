@@ -9,10 +9,12 @@ import { motion } from 'framer-motion';
 import { MapPin, RefreshCw } from 'lucide-react';
 import { useLocation } from '../contexts/LocationContext';
 import { useUser } from '../contexts/UserContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export function Dashboard() {
   const { location, requestLocation } = useLocation();
   const { user } = useUser();
+  const { t } = useLanguage();
 
   const firstName = user?.name?.split(' ')[0] || user?.id || 'Farmer';
 
@@ -27,7 +29,7 @@ export function Dashboard() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-            KisanMind System Active
+            {t('dashboardActiveBadge')}
           </div>
           <motion.h1 
             initial={{ opacity: 0, y: -10, rotateX: 20 }}
@@ -35,14 +37,14 @@ export function Dashboard() {
             transition={{ type: "spring", stiffness: 100 }}
             className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-3 tracking-tight"
           >
-            {firstName}'s Farm
+            {firstName}{t('farmSuffix')}
           </motion.h1>
           <div className="flex items-center gap-2 text-slate-600 dark:text-slate-500 mb-2 text-sm font-medium">
              <MapPin className="w-4 h-4 text-brand-600 dark:text-brand-500" />
              {location.loading ? (
-               <span className="flex items-center gap-1"><RefreshCw className="w-3 h-3 animate-spin"/> Locating...</span>
+               <span className="flex items-center gap-1"><RefreshCw className="w-3 h-3 animate-spin"/> {t('locating')}</span>
              ) : location.error ? (
-               <span className="text-red-500 cursor-pointer hover:underline" onClick={requestLocation}>{location.error} (Retry)</span>
+               <span className="text-red-500 cursor-pointer hover:underline" onClick={requestLocation}>{location.error} ({t('retry')})</span>
              ) : (
                <span>{location.city}, {location.state} ({location.lat.toFixed(2)}, {location.lng.toFixed(2)})</span>
              )}
@@ -53,9 +55,9 @@ export function Dashboard() {
             transition={{ delay: 0.1 }}
             className="text-slate-600 dark:text-slate-400 text-sm md:text-base max-w-2xl font-medium"
           >
-            <span className="text-brand-600 dark:text-brand-300 font-semibold">"किसान सोता है — KisanMind जागता है"</span> <br className="md:hidden" /> 
+            <span className="text-brand-600 dark:text-brand-300 font-semibold">{t('tagline')}</span> <br className="md:hidden" /> 
             <span className="hidden md:inline"> | </span> 
-            Your autonomous agents are monitoring {user?.farmDetails.totalLand} of {user?.farmDetails.primaryCrop} and {user?.farmDetails.secondaryCrop}.
+            {t('agentsMonitoringPrefix')} {user?.farmDetails.totalLand} {t('agentsMonitoringMid')} {user?.farmDetails.primaryCrop} {t('agentsMonitoringAnd')} {user?.farmDetails.secondaryCrop}.
           </motion.p>
         </div>
       </div>

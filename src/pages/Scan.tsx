@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import Markdown from 'react-markdown';
 import { useUser } from '../contexts/UserContext';
 import { postAi } from '../lib/aiClient';
+import { useLanguage } from '../contexts/LanguageContext';
 
 function extractScanFields(markdown: string): { disease?: string; confidence?: string } {
   const disease =
@@ -29,6 +30,7 @@ export function Scan() {
   const [result, setResult] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { scanHistory, saveScan, deleteScan } = useUser();
+  const { t } = useLanguage();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -48,7 +50,7 @@ export function Scan() {
        // Return first heading, stripped of markdown
        return match[1].replace(/[*_~`]/g, '').slice(0, 40);
     }
-    return "Crop Scan Results";
+    return t('cropScanResults');
   };
 
   const handleScan = async () => {
@@ -112,8 +114,8 @@ export function Scan() {
   return (
     <div className="max-w-4xl mx-auto flex-1 w-full flex flex-col pt-6 pb-12">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Crop Scanner</h1>
-        <p className="text-slate-600 dark:text-slate-400">Detect diseases and nutrient deficiencies in real-time using our AI model.</p>
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">{t('scanTitle')}</h1>
+        <p className="text-slate-600 dark:text-slate-400">{t('scanSubtitle')}</p>
       </div>
 
       {!image ? (
@@ -128,23 +130,23 @@ export function Scan() {
             <div className="w-20 h-20 rounded-full bg-brand-100 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 flex items-center justify-center mb-6 shadow-xl shadow-brand-500/10">
               <UploadCloud className="w-10 h-10" />
             </div>
-            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Upload Crop Image</h3>
-            <p className="text-slate-500 dark:text-slate-400 max-w-sm mb-6">Click to browse or snap a photo of your crop leaf here.</p>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{t('uploadCropImage')}</h3>
+            <p className="text-slate-500 dark:text-slate-400 max-w-sm mb-6">{t('uploadCropHint')}</p>
             
             <div className="bg-slate-100 dark:bg-slate-800/50 p-4 rounded-2xl text-left border border-slate-200 dark:border-slate-700/50 w-full max-w-md mb-8">
               <h4 className="font-semibold text-sm text-slate-900 dark:text-white mb-2 flex items-center gap-2">
-                <ScanLine className="w-4 h-4 text-brand-500" /> Photo Guidance
+                <ScanLine className="w-4 h-4 text-brand-500" /> {t('photoGuidance')}
               </h4>
               <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1 ml-6 list-disc marker:text-brand-500">
-                <li>Ensure good lighting (natural light is best)</li>
-                <li>Focus clearly on the affected area or leaf</li>
-                <li>Avoid shadows covering the subject</li>
-                <li>Keep the background as plain as possible</li>
+                <li>{t('pg1')}</li>
+                <li>{t('pg2')}</li>
+                <li>{t('pg3')}</li>
+                <li>{t('pg4')}</li>
               </ul>
             </div>
 
             <button className="px-6 py-3 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-full shadow-lg shadow-brand-500/30 transition-all flex items-center gap-2 pointer-events-auto">
-              <UploadCloud className="w-5 h-5" /> Select Image
+              <UploadCloud className="w-5 h-5" /> {t('selectImage')}
             </button>
           </div>
         </div>
@@ -163,9 +165,9 @@ export function Scan() {
                   className="px-8 py-3 bg-brand-600 hover:bg-brand-500 active:scale-95 disabled:hover:scale-100 disabled:opacity-50 disabled:bg-slate-400 text-white font-bold rounded-full shadow-xl shadow-brand-500/30 transition-all flex items-center gap-2"
                 >
                   {loading ? (
-                    <><RefreshCw className="w-5 h-5 animate-spin" /> Scanning with AI...</>
+                    <><RefreshCw className="w-5 h-5 animate-spin" /> {t('scanningAI')}</>
                   ) : (
-                    <><ScanLine className="w-5 h-5" /> Analyze Crop</>
+                    <><ScanLine className="w-5 h-5" /> {t('analyzeCrop')}</>
                   )}
                </button>
              </div>
@@ -178,12 +180,12 @@ export function Scan() {
               className="glass-panel p-6 rounded-3xl bg-slate-50 dark:bg-slate-900 border-l-4 border-l-brand-500 shadow-lg flex flex-col gap-4"
             >
               <div className="flex justify-between items-center mb-2">
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white">AI Diagnosis & Treatment Plan</h3>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white">{t('diagnosisTitle')}</h3>
                 <button 
                   onClick={downloadReport} 
                   className="text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 px-4 py-2 rounded-lg font-medium text-sm transition-colors"
                 >
-                  Download Report
+                  {t('downloadReport')}
                 </button>
               </div>
               <div className="markdown-body prose dark:prose-invert prose-brand max-w-none text-slate-700 dark:text-slate-300">
@@ -231,10 +233,10 @@ export function Scan() {
       {!result && !image && (
         <div className="mt-8">
           <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-            <History className="w-5 h-5 text-brand-500" /> Scan History
+            <History className="w-5 h-5 text-brand-500" /> {t('scanHistory')}
             {scanHistory.length > 0 && (
               <span className="ml-auto text-xs font-bold px-2 py-1 bg-brand-50 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 rounded-full">
-                ☁️ {scanHistory.length} saved to cloud
+                ☁️ {scanHistory.length} {t('savedToCloud')}
               </span>
             )}
           </h3>
@@ -260,7 +262,7 @@ export function Scan() {
                       </div>
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
-                      <span className="text-white text-xs font-medium bg-brand-500/80 px-2 py-1 rounded backdrop-blur-sm">View Report</span>
+                      <span className="text-white text-xs font-medium bg-brand-500/80 px-2 py-1 rounded backdrop-blur-sm">{t('viewReport')}</span>
                     </div>
                   </div>
                   <div className="px-1">
@@ -270,7 +272,7 @@ export function Scan() {
                         <button
                           onClick={() => scan.id && deleteScan(scan.id)}
                           className="text-slate-300 dark:text-slate-600 hover:text-red-500 transition-colors flex-shrink-0 p-1"
-                          title="Delete scan"
+                          title={t('deleteScanTitle')}
                         >
                           <X className="w-3.5 h-3.5" />
                         </button>
@@ -289,7 +291,7 @@ export function Scan() {
           ) : (
             <div className="glass-panel p-6 rounded-2xl flex items-center justify-center text-slate-500 dark:text-slate-400 border border-dashed border-slate-200 dark:border-slate-800">
               <span className="flex items-center gap-2">
-                <ScanLine className="w-4 h-4" /> No scans yet. Sign in to save your scan history to the cloud.
+                <ScanLine className="w-4 h-4" /> {t('noScansYet')}
               </span>
             </div>
           )}

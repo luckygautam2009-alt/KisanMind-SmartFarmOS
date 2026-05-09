@@ -4,10 +4,12 @@ import { useEffect, useState, type ComponentProps } from 'react';
 import Markdown from 'react-markdown';
 import { useUser } from '../contexts/UserContext';
 import { postAi } from '../lib/aiClient';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export function Weather() {
   const { location, requestLocation } = useLocation();
   const { user } = useUser();
+  const { t } = useLanguage();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [advisory, setAdvisory] = useState<string | null>(null);
@@ -126,11 +128,11 @@ export function Weather() {
     <div className="max-w-5xl mx-auto flex-1 w-full flex flex-col pt-6 pb-12">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Weather & Risks</h1>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">{t('weatherTitle')}</h1>
           <p className="text-slate-600 dark:text-slate-400 flex items-center gap-2 flex-wrap">
-            <MapPin className="w-4 h-4 shrink-0" /> Live from {location.city}, {location.state}
+            <MapPin className="w-4 h-4 shrink-0" /> {t('weatherLiveFrom')} {location.city}, {location.state}
             <button type="button" onClick={requestLocation} className="text-xs ml-1 text-brand-600 hover:underline">
-              Update Location
+              {t('updateLocation')}
             </button>
           </p>
         </div>
@@ -144,7 +146,7 @@ export function Weather() {
               <div className="text-6xl font-black text-slate-900 dark:text-white mb-2">{current.temperature_2m}°C</div>
               <div className="text-xl font-semibold text-blue-600 dark:text-blue-400">{getWeatherDesc(current.weathercode)}</div>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                Feels like {current.apparent_temperature}°C · Humidity {current.relative_humidity_2m}%
+                {t('feelsLike')} {current.apparent_temperature}°C · {t('humidityLabel')} {current.relative_humidity_2m}%
               </p>
             </div>
           </div>
@@ -152,24 +154,24 @@ export function Weather() {
           <div className="grid grid-cols-2 gap-4 w-full md:w-auto">
             <div className="bg-white dark:bg-slate-800/50 p-4 rounded-2xl flex flex-col items-center min-w-[120px] shadow-sm">
               <Wind className="w-6 h-6 text-teal-500 mb-2" />
-              <span className="text-sm text-slate-500 dark:text-slate-400">Wind</span>
+              <span className="text-sm text-slate-500 dark:text-slate-400">{t('windLabel')}</span>
               <span className="font-bold text-slate-900 dark:text-white">{current.windspeed_10m} km/h</span>
             </div>
             <div className="bg-white dark:bg-slate-800/50 p-4 rounded-2xl flex flex-col items-center min-w-[120px] shadow-sm">
               <ThermometerSun className="w-6 h-6 text-amber-500 mb-2" />
-              <span className="text-sm text-slate-500 dark:text-slate-400">Observed</span>
+              <span className="text-sm text-slate-500 dark:text-slate-400">{t('observedLabel')}</span>
               <span className="font-bold text-slate-900 dark:text-white text-center">
                 {new Date(current.time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
               </span>
             </div>
             <div className="bg-white dark:bg-slate-800/50 p-4 rounded-2xl flex flex-col items-center min-w-[120px] shadow-sm">
               <Droplets className="w-6 h-6 text-sky-500 mb-2" />
-              <span className="text-sm text-slate-500 dark:text-slate-400">Rain (now)</span>
+              <span className="text-sm text-slate-500 dark:text-slate-400">{t('rainNowLabel')}</span>
               <span className="font-bold text-slate-900 dark:text-white">{current.precipitation} mm</span>
             </div>
             <div className="bg-white dark:bg-slate-800/50 p-4 rounded-2xl flex flex-col items-center min-w-[120px] shadow-sm">
               <Umbrella className="w-6 h-6 text-indigo-500 mb-2" />
-              <span className="text-sm text-slate-500 dark:text-slate-400">Wind dir.</span>
+              <span className="text-sm text-slate-500 dark:text-slate-400">{t('windDirLabel')}</span>
               <span className="font-bold text-slate-900 dark:text-white">{current.winddirection_10m}°</span>
             </div>
           </div>
@@ -179,9 +181,9 @@ export function Weather() {
       <div className="glass-panel p-6 rounded-3xl mb-8 border border-brand-500/20">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
           <div>
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Farm weather agent</h2>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">{t('farmAgentTitle')}</h2>
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              AI advisory uses live Open-Meteo data and your profile crop when set.
+              {t('farmAgentDesc')}
             </p>
           </div>
           <button
@@ -190,7 +192,7 @@ export function Weather() {
             disabled={advisoryLoading || !current}
             className="px-5 py-2.5 rounded-full bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white text-sm font-bold shadow-lg shadow-brand-500/25"
           >
-            {advisoryLoading ? 'Generating…' : 'Generate advisory'}
+            {advisoryLoading ? t('generatingAdvisory') : t('genAdvisory')}
           </button>
         </div>
         {advisoryError && <p className="text-sm text-red-600 dark:text-red-400">{advisoryError}</p>}
@@ -204,7 +206,7 @@ export function Weather() {
       {daily && (
         <>
           <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-            <CalendarDays className="w-5 h-5" /> 7-Day Forecast
+            <CalendarDays className="w-5 h-5" /> {t('sevenDay')}
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-7 gap-4">
             {daily.time.map((timeStr: string, idx: number) => {
@@ -214,14 +216,14 @@ export function Weather() {
               const rainSum = daily.precipitation_sum?.[idx];
               return (
                 <div key={timeStr} className="glass-panel p-4 rounded-2xl flex flex-col items-center">
-                  <span className="font-semibold text-slate-600 dark:text-slate-300 mb-2">{idx === 0 ? 'Today' : day}</span>
+                  <span className="font-semibold text-slate-600 dark:text-slate-300 mb-2">{idx === 0 ? t('todayLabel') : day}</span>
                   {getWeatherIcon(daily.weathercode[idx], { className: 'w-10 h-10 mb-2' })}
                   <div className="flex gap-2">
                     <span className="font-bold text-slate-900 dark:text-white text-lg">{Math.round(daily.temperature_2m_max[idx])}°</span>
                     <span className="font-medium text-slate-500 dark:text-slate-400 text-lg">{Math.round(daily.temperature_2m_min[idx])}°</span>
                   </div>
                   <span className="text-xs text-sky-600 dark:text-sky-400 mt-2 font-semibold">
-                    {rainPct != null ? `${rainPct}% rain` : ''}
+                    {rainPct != null ? `${rainPct}% ${t('rainChance')}` : ''}
                     {rainSum != null && Number(rainSum) > 0 ? ` · ${rainSum} mm` : ''}
                   </span>
                   <span className="text-[10px] text-slate-400 mt-1">Wind {Math.round(daily.windspeed_10m_max?.[idx] ?? 0)} km/h</span>

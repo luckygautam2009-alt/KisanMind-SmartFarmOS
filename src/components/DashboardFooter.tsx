@@ -16,19 +16,19 @@ export function DashboardFooter() {
           </div>
           <div className="hidden md:block w-px h-4 bg-slate-300 dark:bg-slate-700"></div>
           <p className="text-xs font-medium text-slate-500">
-            &copy; 2026. <span className="hidden sm:inline">Transforming Agriculture.</span> Created by Yash Gautam.
+            {t('footerCopyright')} <span className="hidden sm:inline">{t('footerTaglineShort')}</span> {t('footerCredit')}
           </p>
         </div>
 
         {/* Links & Status */}
         <div className="flex items-center gap-6 text-xs font-medium text-slate-500">
-           <a href="#" className="hover:text-slate-900 dark:hover:text-white transition-colors">Support</a>
-           <a href="#" className="hover:text-slate-900 dark:hover:text-white transition-colors">Privacy</a>
-           <a href="#" className="hover:text-slate-900 dark:hover:text-white transition-colors">Terms</a>
+           <a href="#" className="hover:text-slate-900 dark:hover:text-white transition-colors">{t('supportLink')}</a>
+           <a href="#" className="hover:text-slate-900 dark:hover:text-white transition-colors">{t('privacyLink')}</a>
+           <a href="#" className="hover:text-slate-900 dark:hover:text-white transition-colors">{t('termsLink')}</a>
            
            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-900 rounded-full border border-slate-200 dark:border-slate-800 ml-2">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
-              <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300">All Systems Operational</span>
+              <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300">{t('allSystemsGo')}</span>
            </div>
         </div>
 

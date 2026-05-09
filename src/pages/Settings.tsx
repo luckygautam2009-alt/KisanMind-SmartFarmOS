@@ -1,11 +1,11 @@
 import { motion } from 'framer-motion';
-import { Bell, Globe, Moon, Shield, Sun, UploadCloud, Palette, Type, User, Check, LogOut, Smartphone } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useLanguage } from '../contexts/LanguageContext';
+import { Globe, Moon, Shield, Sun, Palette, Type, User, Check, LogOut, Smartphone, Camera } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useLanguage, type Language } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useUser } from '../contexts/UserContext';
-
-type Language = 'en' | 'hi' | 'mr' | 'gu' | 'ta' | 'te' | 'bn' | 'pa' | 'kn' | 'ml';
+import { useRef } from 'react';
+import { uploadToCloudinary } from '../lib/cloudinary';
 
 const languages: { code: Language; label: string }[] = [
   { code: 'en', label: 'English' },
@@ -21,10 +21,28 @@ const languages: { code: Language; label: string }[] = [
 ];
 
 export function Settings() {
-  const { lang, setLanguage } = useLanguage();
+  const { lang, setLanguage, t } = useLanguage();
   const { theme, toggleTheme, color, setColor, font, setFont } = useTheme();
-  const { user, signOutUser } = useUser();
+  const { user, firebaseUser, signOutUser, updateUser } = useUser();
   const navigate = useNavigate();
+  const settingsPhotoRef = useRef<HTMLInputElement>(null);
+
+  const handleSettingsPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !firebaseUser) return;
+    const url = await uploadToCloudinary(file);
+    if (url) await updateUser({ photoURL: url });
+    else {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const dataUrl = reader.result as string;
+        if (dataUrl.length > 900_000) return;
+        await updateUser({ photoURL: dataUrl });
+      };
+      reader.readAsDataURL(file);
+    }
+    e.target.value = '';
+  };
 
   const handleSignOut = async () => {
     await signOutUser();
@@ -53,8 +71,8 @@ export function Settings() {
         animate={{ opacity: 1, y: 0 }}
         className="mb-10"
       >
-        <h1 className="text-4xl font-extrabold text-slate-900 dark:text-white mb-3 tracking-tight transition-colors">Configuration</h1>
-        <p className="text-slate-600 dark:text-slate-400 text-lg transition-colors">Manage your smart farm preferences, personalization, and security.</p>
+        <h1 className="text-4xl font-extrabold text-slate-900 dark:text-white mb-3 tracking-tight transition-colors">{t('configurationTitle')}</h1>
+        <p className="text-slate-600 dark:text-slate-400 text-lg transition-colors">{t('configurationSubtitle')}</p>
       </motion.div>
 
       <motion.div 
@@ -72,7 +90,7 @@ export function Settings() {
             <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/10 rounded-full blur-3xl -mr-10 -mt-10 transition-transform group-hover:scale-150"></div>
             
             <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-8 flex items-center gap-3 relative z-10 transition-colors">
-              <Shield className="w-6 h-6 text-brand-400" /> Account Identity
+              <Shield className="w-6 h-6 text-brand-400" /> {t('accountIdentity')}
             </h3>
             
             <div className="flex flex-col items-center text-center relative z-10">
@@ -82,16 +100,26 @@ export function Settings() {
                 ) : (
                   <User className="w-12 h-12 text-brand-400" />
                 )}
-                <button className="absolute -bottom-3 -right-3 w-10 h-10 bg-brand-600 text-white rounded-xl flex items-center justify-center shadow-lg hover:bg-brand-500 transition-colors">
-                  <UploadCloud className="w-5 h-5" />
+                <input type="file" ref={settingsPhotoRef} className="hidden" accept="image/*" onChange={handleSettingsPhoto} />
+                <button
+                  type="button"
+                  disabled={!firebaseUser}
+                  onClick={() => settingsPhotoRef.current?.click()}
+                  title={firebaseUser ? t('changePhotoHint') : t('signInPhoto')}
+                  className="absolute -bottom-3 -right-3 w-10 h-10 bg-brand-600 text-white rounded-xl flex items-center justify-center shadow-lg hover:bg-brand-500 transition-colors disabled:opacity-40"
+                >
+                  <Camera className="w-5 h-5" />
                 </button>
               </div>
               <div className="font-extrabold text-slate-900 dark:text-white text-2xl mb-1 transition-colors">{user?.name || 'Farmer'}</div>
               <div className="text-brand-500 dark:text-brand-400 font-medium mb-1 transition-colors">{user?.membership || 'Free Member'}</div>
               <div className="text-slate-500 dark:text-slate-400 text-sm mb-6 transition-colors">{user?.email || ''}</div>
               
+              <Link to="/dashboard/profile" className="w-full py-2 text-center text-sm font-semibold text-brand-600 hover:underline">
+                {t('editProfileLink')}
+              </Link>
               <button onClick={handleSignOut} className="w-full py-3 px-4 bg-slate-100 dark:bg-white/5 hover:bg-red-50 dark:hover:bg-red-500/10 border border-slate-200 dark:border-white/10 hover:border-red-300 dark:hover:border-red-500/30 text-slate-900 dark:text-white hover:text-red-600 dark:hover:text-red-400 font-semibold rounded-xl transition-all flex items-center justify-center gap-2">
-                <LogOut className="w-4 h-4" /> Sign Out
+                <LogOut className="w-4 h-4" /> {t('signOut')}
               </button>
             </div>
           </motion.div>
@@ -99,14 +127,14 @@ export function Settings() {
           {/* System & Alerts Card */}
           <motion.div variants={itemVariants} className="bg-white/80 dark:bg-slate-900/40 backdrop-blur-2xl border border-slate-200 dark:border-white/10 p-8 rounded-[2rem] shadow-xl transition-colors">
             <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-3 transition-colors">
-              <Smartphone className="w-6 h-6 text-blue-500 dark:text-blue-400" /> System & Alerts
+              <Smartphone className="w-6 h-6 text-blue-500 dark:text-blue-400" /> {t('systemAlertsCard')}
             </h3>
             
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="font-semibold text-slate-900 dark:text-white text-lg transition-colors">Push Notifications</div>
-                  <div className="text-sm text-slate-500 dark:text-slate-400 transition-colors">Weather & Market alerts</div>
+                  <div className="font-semibold text-slate-900 dark:text-white text-lg transition-colors">{t('pushNotifications')}</div>
+                  <div className="text-sm text-slate-500 dark:text-slate-400 transition-colors">{t('pushNotificationsDesc')}</div>
                 </div>
                 <div className="w-14 h-8 bg-brand-500 rounded-full relative cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.4)]">
                   <motion.div layout className="absolute right-1 top-1 bg-white w-6 h-6 rounded-full shadow-md"></motion.div>
@@ -115,8 +143,8 @@ export function Settings() {
 
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="font-semibold text-slate-900 dark:text-white text-lg transition-colors">SMS Fallback</div>
-                  <div className="text-sm text-slate-500 dark:text-slate-400 transition-colors">Receive alerts offline</div>
+                  <div className="font-semibold text-slate-900 dark:text-white text-lg transition-colors">{t('smsFallback')}</div>
+                  <div className="text-sm text-slate-500 dark:text-slate-400 transition-colors">{t('smsFallbackDesc')}</div>
                 </div>
                 <div className="w-14 h-8 bg-brand-500 rounded-full relative cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.4)]">
                   <motion.div layout className="absolute right-1 top-1 bg-white w-6 h-6 rounded-full shadow-md"></motion.div>
@@ -132,7 +160,7 @@ export function Settings() {
           
           <motion.div variants={itemVariants} className="bg-white/80 dark:bg-slate-900/40 backdrop-blur-2xl border border-slate-200 dark:border-white/10 p-8 rounded-[2rem] shadow-xl h-full transition-colors">
             <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-8 flex items-center gap-3 transition-colors">
-              <Palette className="w-6 h-6 text-orange-500 dark:text-orange-400" /> Interface Personalization
+              <Palette className="w-6 h-6 text-orange-500 dark:text-orange-400" /> {t('interfacePersonalization')}
             </h3>
             
             <div className="space-y-8">
@@ -142,8 +170,8 @@ export function Settings() {
                 <div className="flex items-center gap-4 mb-4">
                   <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-500/20 text-blue-500 dark:text-blue-400 flex items-center justify-center transition-colors"><Globe className="w-5 h-5"/></div>
                   <div>
-                    <div className="font-bold text-slate-900 dark:text-white text-lg transition-colors">Operating Language</div>
-                    <div className="text-sm text-slate-500 dark:text-slate-400 transition-colors">OS interface language</div>
+                    <div className="font-bold text-slate-900 dark:text-white text-lg transition-colors">{t('operatingLanguage')}</div>
+                    <div className="text-sm text-slate-500 dark:text-slate-400 transition-colors">{t('operatingLanguageDesc')}</div>
                   </div>
                 </div>
                 <div className="relative">
@@ -167,13 +195,13 @@ export function Settings() {
                     {theme === 'dark' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
                   </div>
                   <div>
-                    <div className="font-bold text-slate-900 dark:text-white text-lg transition-colors">Appearance</div>
-                    <div className="text-sm text-slate-500 dark:text-slate-400 transition-colors">Dark mode recommended for field use</div>
+                    <div className="font-bold text-slate-900 dark:text-white text-lg transition-colors">{t('appearance')}</div>
+                    <div className="text-sm text-slate-500 dark:text-slate-400 transition-colors">{t('appearanceDesc')}</div>
                   </div>
                 </div>
                 <div className="flex bg-slate-200 dark:bg-slate-950/50 border border-slate-300 dark:border-white/10 rounded-xl p-1 transition-colors">
-                  <button onClick={() => theme !== 'light' && toggleTheme()} className={`flex-1 py-3 text-sm font-bold rounded-lg transition-all ${theme === 'light' ? 'bg-white text-slate-900 shadow-md' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}>Light</button>
-                  <button onClick={() => theme !== 'dark' && toggleTheme()} className={`flex-1 py-3 text-sm font-bold rounded-lg transition-all ${theme === 'dark' ? 'bg-slate-800 text-white shadow-md' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}>Dark</button>
+                  <button onClick={() => theme !== 'light' && toggleTheme()} className={`flex-1 py-3 text-sm font-bold rounded-lg transition-all ${theme === 'light' ? 'bg-white text-slate-900 shadow-md' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}>{t('light')}</button>
+                  <button onClick={() => theme !== 'dark' && toggleTheme()} className={`flex-1 py-3 text-sm font-bold rounded-lg transition-all ${theme === 'dark' ? 'bg-slate-800 text-white shadow-md' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}>{t('dark')}</button>
                 </div>
               </div>
 
@@ -182,8 +210,8 @@ export function Settings() {
                 <div className="flex items-center gap-4 mb-4">
                   <div className="w-10 h-10 rounded-xl bg-brand-100 dark:bg-brand-500/20 text-brand-500 dark:text-brand-400 flex items-center justify-center transition-colors"><Palette className="w-5 h-5"/></div>
                   <div>
-                    <div className="font-bold text-slate-900 dark:text-white text-lg transition-colors">Accent Color</div>
-                    <div className="text-sm text-slate-500 dark:text-slate-400 transition-colors">Primary brand color</div>
+                    <div className="font-bold text-slate-900 dark:text-white text-lg transition-colors">{t('accentColor')}</div>
+                    <div className="text-sm text-slate-500 dark:text-slate-400 transition-colors">{t('accentDesc')}</div>
                   </div>
                 </div>
                 <div className="flex gap-4">
@@ -209,8 +237,8 @@ export function Settings() {
                 <div className="flex items-center gap-4 mb-4">
                   <div className="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-500/20 text-rose-500 dark:text-rose-400 flex items-center justify-center transition-colors"><Type className="w-5 h-5"/></div>
                   <div>
-                    <div className="font-bold text-slate-900 dark:text-white text-lg transition-colors">Typography</div>
-                    <div className="text-sm text-slate-500 dark:text-slate-400 transition-colors">Application font family</div>
+                    <div className="font-bold text-slate-900 dark:text-white text-lg transition-colors">{t('typography')}</div>
+                    <div className="text-sm text-slate-500 dark:text-slate-400 transition-colors">{t('typographyDesc')}</div>
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
