@@ -1,21 +1,18 @@
-import { initializeApp, getApps } from 'firebase/app';
-import { getAuth, GoogleAuthProvider } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDMSn7ib3shZk6knw2Ot82e7wtU7FpvP5s",
-  authDomain: "kisanmindplus.firebaseapp.com",
-  projectId: "kisanmindplus",
-  storageBucket: "kisanmindplus.firebasestorage.app",
-  messagingSenderId: "663550963237",
-  appId: "1:663550963237:web:5d9f85f7d6fc685ff659cc",
-  measurementId: "G-CL0ZL2LBBN"
+  apiKey: "AIzaSyAfxU7b62OI6XLGA7UVBu5MaINXT4rjwkE",
+  authDomain: "kisan-mind-25639.firebaseapp.com",
+  projectId: "kisan-mind-25639",
+  storageBucket: "kisan-mind-25639.firebasestorage.app",
+  messagingSenderId: "523991745145",
+  appId: "1:523991745145:web:a2bc2803aa60a9d5770aa8",
+  measurementId: "G-LMBVJ48JMV"
 };
 
-// Avoid re-initializing on hot reloads
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const googleProvider = new GoogleAuthProvider();
 
+export default app;
