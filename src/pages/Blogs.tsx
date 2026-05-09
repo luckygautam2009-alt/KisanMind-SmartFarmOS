@@ -21,7 +21,7 @@ const BLOG_POSTS = [
     author: "Dr. Rajesh Kumar",
     date: "April 28, 2026",
     category: "Organic Farming",
-    image: "https://images.unsplash.com/photo-1595113316349-9fa4ee24f884?auto=format&fit=crop&q=80&w=800",
+    image: "https://images.unsplash.com/photo-1627920769831-7299044d0397?auto=format&fit=crop&q=80&w=800",
     readTime: "8 min read"
   },
   {
@@ -60,7 +60,7 @@ const BLOG_POSTS = [
     author: "Vikram Singh",
     date: "April 22, 2026",
     category: "Irrigation",
-    image: "https://images.unsplash.com/photo-1563514223300-63e32c91244d?auto=format&fit=crop&q=80&w=800",
+    image: "https://images.unsplash.com/photo-1594499413902-7cbc4336c2a6?auto=format&fit=crop&q=80&w=800",
     readTime: "10 min read"
   },
   {
@@ -79,7 +79,7 @@ const BLOG_POSTS = [
     author: "Legal Desk",
     date: "April 20, 2026",
     category: "Policy",
-    image: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=800",
+    image: "https://images.unsplash.com/photo-1594488426038-f9b69b5c3e60?auto=format&fit=crop&q=80&w=800",
     readTime: "15 min read"
   }
 ];
