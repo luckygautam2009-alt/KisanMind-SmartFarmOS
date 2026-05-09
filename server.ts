@@ -96,9 +96,10 @@ async function startServer() {
   // API Route: AI Mandi Price Prediction / Generation
   app.post("/api/mandi", async (req, res) => {
     try {
-      const { city, state } = req.body;
+      const { city, state, crop } = req.body;
       const c = city || 'Local Area';
       const s = state || 'India';
+      const targetCrop = crop ? `specifically for ${crop} and other related crops` : 'at least 15 key crops relevant to that region';
       
       if (!apiKey || apiKey === "MISSING_KEY" || apiKey === "MY_GEMINI_API_KEY") {
          const mockData = [
@@ -115,11 +116,32 @@ async function startServer() {
            { crop: 'Milk (Buffalo)', category: 'Dairy', market: `${c} Dairy Coop`, price: 5500, trend: 'stable', change: '0.0%', date: 'Live', distance: '2 km' },
            { crop: 'Milk (Cow)', category: 'Dairy', market: `${c} Dairy Coop`, price: 4800, trend: 'up', change: '+1.0%', date: 'Live', distance: '2 km' }
          ];
-         return res.json({ data: mockData });
+         
+         // If a specific crop is searched, put it at the top of mock data if found, or simulate it
+         let filteredMock = [...mockData];
+         if (crop) {
+           const found = mockData.find(m => m.crop.toLowerCase().includes(crop.toLowerCase()));
+           if (found) {
+             filteredMock = [found, ...mockData.filter(m => m !== found)];
+           } else {
+             filteredMock = [{ 
+               crop: crop.charAt(0).toUpperCase() + crop.slice(1), 
+               category: 'Crops', 
+               market: `${c} Market`, 
+               price: 2500 + Math.random() * 2000, 
+               trend: 'up', 
+               change: '+0.5%', 
+               date: 'Live', 
+               distance: '5 km' 
+             }, ...mockData];
+           }
+         }
+         
+         return res.json({ data: filteredMock });
       }
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash",
-        contents: `Run a simulated LightGBM regression model based on current dynamic Agmarknet market data to predict realistic mandi prices for ${city || 'local area'}, ${state || 'India'}. Return highly accurate predictions for at least 15 key crops relevant to that region (e.g., Wheat, Soybean, Mustard, Cotton, Paddy, Tomato, Onion, Potato, Mango, Banana, Milk). Include trend, distance, and 80-90% confidence score.`,
+        contents: `Run a simulated LightGBM regression model based on current dynamic Agmarknet market data to predict realistic mandi prices for ${city || 'local area'}, ${state || 'India'}. Return highly accurate predictions ${targetCrop}. Include trend, distance, and 80-90% confidence score. List at least 15 items total.`,
         config: {
           systemInstruction: "You are an agricultural market data simulator. Generate a realistic JSON response containing current mandi prices, trends, distances, and crops. Reply ONLY with valid JSON.",
           responseMimeType: "application/json",

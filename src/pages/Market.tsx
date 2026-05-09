@@ -99,51 +99,65 @@ export function Market() {
     return null;
   };
 
-  useEffect(() => {
-    const fetchMandi = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await fetch('/api/mandi', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ city: location.city, state: location.state })
-        });
-        const json = await res.json();
-        if (!res.ok) {
-          throw new Error(json.error || 'Failed to fetch');
-        }
-        if (json.data) setPrices(json.data);
-      } catch (e: any) {
-        console.error(e);
-        setError(e.message);
-      } finally {
-        setLoading(false);
+  const fetchMandi = async (city?: string, state?: string, crop?: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/mandi', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          city: city || location.city, 
+          state: state || location.state,
+          crop: crop
+        })
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.error || 'Failed to fetch');
       }
-    };
+      if (json.data) setPrices(json.data);
+    } catch (e: any) {
+      console.error(e);
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchMandi();
   }, [location.city, location.state]);
 
-  const filteredPrices = prices.filter(item => {
-    const itemCat = (item.category || '').toLowerCase();
-    const active = activeCategory.toLowerCase();
-    
-    // Exact or "All" match
-    let categoryMatch = active === 'all' || itemCat === active;
-    
-    // Fuzzy fallback match if not "All"
-    if (!categoryMatch && active !== 'all') {
-      if (active === 'crops') categoryMatch = ['crop', 'grain', 'cereal', 'pulse'].some(c => itemCat.includes(c));
-      else if (active === 'vegetables') categoryMatch = ['vegetable', 'veg'].some(c => itemCat.includes(c));
-      else if (active === 'fruits') categoryMatch = ['fruit'].some(c => itemCat.includes(c));
-      else if (active === 'dairy') categoryMatch = ['dairy', 'milk'].some(c => itemCat.includes(c));
-    }
-    
-    const cropMatch = item.crop.toLowerCase().includes(search.toLowerCase());
-    const marketMatch = item.market.toLowerCase().includes(locationSearch.toLowerCase());
-    
-    return categoryMatch && cropMatch && marketMatch;
-  });
+  const handleSearch = () => {
+    // If locationSearch is empty, use default location
+    // If locationSearch has something, pass it as city
+    fetchMandi(locationSearch || location.city, location.state, search);
+  };
+
+  const filteredPrices = useMemo(() => {
+    return prices.filter(item => {
+      const itemCat = (item.category || '').toLowerCase();
+      const active = activeCategory.toLowerCase();
+      
+      // Exact or "All" match
+      let categoryMatch = active === 'all' || itemCat === active;
+      
+      // Fuzzy fallback match if not "All"
+      if (!categoryMatch && active !== 'all') {
+        if (active === 'crops') categoryMatch = ['crop', 'grain', 'cereal', 'pulse'].some(c => itemCat.includes(c));
+        else if (active === 'vegetables') categoryMatch = ['vegetable', 'veg'].some(c => itemCat.includes(c));
+        else if (active === 'fruits') categoryMatch = ['fruit'].some(c => itemCat.includes(c));
+        else if (active === 'dairy') categoryMatch = ['dairy', 'milk'].some(c => itemCat.includes(c));
+      }
+      
+      // We still filter locally for smooth UI, but the "Search" button triggers a fresh fetch
+      const cropMatch = item.crop.toLowerCase().includes(search.toLowerCase());
+      const marketMatch = item.market.toLowerCase().includes(locationSearch.toLowerCase());
+      
+      return categoryMatch && cropMatch && marketMatch;
+    });
+  }, [prices, search, locationSearch, activeCategory]);
 
   return (
     <div className="max-w-6xl mx-auto flex-1 w-full flex flex-col pt-6 pb-20 px-4">
@@ -173,6 +187,7 @@ export function Market() {
                     placeholder="e.g. Tomato, Wheat" 
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                     className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-brand-500 text-sm"
                   />
                 </div>
@@ -187,10 +202,20 @@ export function Market() {
                     placeholder="e.g. Nashik, MP" 
                     value={locationSearch}
                     onChange={(e) => setLocationSearch(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                     className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-brand-500 text-sm"
                   />
                 </div>
               </div>
+
+              <button 
+                onClick={handleSearch}
+                disabled={loading}
+                className="w-full py-3 bg-brand-600 hover:bg-brand-500 text-white font-black rounded-xl shadow-lg shadow-brand-500/30 transition-all flex items-center justify-center gap-2 uppercase tracking-widest text-xs"
+              >
+                {loading ? <RefreshCw className="w-4 h-4 animate-spin"/> : <Search className="w-4 h-4" />}
+                Get Live Prices
+              </button>
 
               <div className="pt-4">
                 <label className="text-xs font-bold text-slate-500 mb-3 block">Category Selection</label>
