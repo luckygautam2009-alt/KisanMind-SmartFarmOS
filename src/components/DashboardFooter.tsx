@@ -16,7 +16,7 @@ export function DashboardFooter() {
           </div>
           <div className="hidden md:block w-px h-4 bg-slate-300 dark:bg-slate-700"></div>
           <p className="text-xs font-medium text-slate-500">
-            &copy; 2026. <span className="hidden sm:inline">Transforming Agriculture.</span> Created by Piyush Gupta.
+            &copy; 2026. <span className="hidden sm:inline">Transforming Agriculture.</span> Created by Yash Gautam.
           </p>
         </div>
 
