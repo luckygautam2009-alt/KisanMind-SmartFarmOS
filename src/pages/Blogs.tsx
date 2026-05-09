@@ -21,7 +21,7 @@ const BLOG_POSTS = [
     author: "Dr. Rajesh Kumar",
     date: "April 28, 2026",
     category: "Organic Farming",
-    image: "/Users/yashgautam/.gemini/antigravity/brain/d0300bf6-2454-4e8e-ac75-7eacf84e17df/organic_pest_control_blog_1778304020412.png",
+    image: "/blogs/pest_control.png",
     readTime: "8 min read"
   },
   {
@@ -40,7 +40,7 @@ const BLOG_POSTS = [
     author: "Anita Sharma",
     date: "April 25, 2026",
     category: "Soil Science",
-    image: "/Users/yashgautam/.gemini/antigravity/brain/d0300bf6-2454-4e8e-ac75-7eacf84e17df/soil_health_blog_1778304096776.png",
+    image: "/blogs/soil_health.png",
     readTime: "12 min read"
   },
   {
@@ -60,7 +60,7 @@ const BLOG_POSTS = [
     author: "Vikram Singh",
     date: "April 22, 2026",
     category: "Irrigation",
-    image: "/Users/yashgautam/.gemini/antigravity/brain/d0300bf6-2454-4e8e-ac75-7eacf84e17df/drip_irrigation_blog_1778304111123.png",
+    image: "/blogs/irrigation.png",
     readTime: "10 min read"
   },
   {
@@ -79,7 +79,7 @@ const BLOG_POSTS = [
     author: "Legal Desk",
     date: "April 20, 2026",
     category: "Policy",
-    image: "/Users/yashgautam/.gemini/antigravity/brain/d0300bf6-2454-4e8e-ac75-7eacf84e17df/tractor_subsidies_blog_1778304176770.png",
+    image: "/blogs/subsidies.png",
     readTime: "15 min read"
   }
 ];

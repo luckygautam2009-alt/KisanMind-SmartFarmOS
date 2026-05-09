@@ -1,5 +1,6 @@
 import { Leaf, Mail, Globe, MapPin, Sprout } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { Link } from 'react-router-dom';
 
 export function DashboardFooter() {
   const { t } = useLanguage();
@@ -9,16 +10,16 @@ export function DashboardFooter() {
       <div className="flex flex-col md:flex-row justify-between items-center gap-4">
         
         {/* Brand & Copyright */}
-        <div className="flex items-center gap-4">
+        <Link to="/dashboard" className="flex items-center gap-4 group">
           <div className="flex items-center gap-2">
-            <Sprout className="text-brand-600 dark:text-brand-500 w-5 h-5" />
+            <Sprout className="text-brand-600 dark:text-brand-500 w-5 h-5 group-hover:scale-110 transition-transform" />
             <span className="font-bold text-slate-900 dark:text-white text-sm tracking-tight">Kisan<span className="text-brand-500">Mind+</span></span>
           </div>
           <div className="hidden md:block w-px h-4 bg-slate-300 dark:bg-slate-700"></div>
           <p className="text-xs font-medium text-slate-500">
             {t('footerCopyright')} <span className="hidden sm:inline">{t('footerTaglineShort')}</span> {t('footerCredit')}
           </p>
-        </div>
+        </Link>
 
         {/* Links & Status */}
         <div className="flex items-center gap-6 text-xs font-medium text-slate-500">
