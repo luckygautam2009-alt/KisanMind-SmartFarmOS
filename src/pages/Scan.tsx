@@ -3,6 +3,17 @@ import { motion } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';
 import Markdown from 'react-markdown';
 import { useUser } from '../contexts/UserContext';
+import { postAi } from '../lib/aiClient';
+
+function extractScanFields(markdown: string): { disease?: string; confidence?: string } {
+  const disease =
+    markdown.match(/\*\*Detected Disease\/Pest\*\*[:\s]*\*?\*?([^*\n]+)/i)?.[1]?.trim() ||
+    markdown.match(/(?:disease|diagnosis)[:\s]+([^\n#]+)/i)?.[1]?.trim();
+  const confidence =
+    markdown.match(/\*\*Confidence[^*]*\*\*[:\s]*([^\n]+)/i)?.[1]?.trim() ||
+    markdown.match(/confidence\s*(?:score)?[:\s]+([^\n]+)/i)?.[1]?.trim();
+  return { disease: disease || undefined, confidence: confidence || undefined };
+}
 
 interface RecentScan {
   id: string;
@@ -45,63 +56,35 @@ export function Scan() {
     setLoading(true);
     setResult(null);
     try {
-      // Simulate highly advanced AI processing delay (AgriVision Pro Model)
-      await new Promise(resolve => setTimeout(resolve, 2500));
+      const prompt = [
+        'Analyze the uploaded crop leaf or plant image.',
+        'Identify crop health, probable diseases, pests, or nutrient issues.',
+        'Give a confidence assessment, severity, recommended pesticides and fertilizers where applicable,',
+        'and a short actionable treatment plan.',
+        'Respond in clear Markdown with headings (use "### Fertilizer Recommendations" for nutrient section).',
+      ].join(' ');
 
-      // Generate a highly realistic, 99% accurate mock AI report
-      const diseases = [
-        { name: "Early Blight", crop: "Tomato/Potato", confidence: "99.2%", severity: "Moderate" },
-        { name: "Powdery Mildew", crop: "Wheat/Grapes", confidence: "98.7%", severity: "High" },
-        { name: "Nitrogen Deficiency", crop: "Corn/Maize", confidence: "99.5%", severity: "Low" },
-        { name: "Leaf Rust", crop: "Soybean", confidence: "97.8%", severity: "High" }
-      ];
-      
-      const selected = diseases[Math.floor(Math.random() * diseases.length)];
-      
-      const mockResult = `
-# 🔬 AgriVision Pro AI Diagnosis: ${selected.name} detected on ${selected.crop}
+      const aiMarkdown = await postAi({
+        text: prompt,
+        imageBase64: image,
+      });
 
-**Confidence Score:** ${selected.confidence}
-**Severity Level:** ${selected.severity}
+      const trimmed = aiMarkdown.trim();
+      setResult(trimmed);
 
-### 1) Health Status & Disease Analysis
-The uploaded leaf image shows clear indications of **${selected.name}**. 
-This is characterized by irregular, dark concentric lesions on the lower foliage. If left untreated, this pathogen will rapidly ascend the plant canopy, causing defoliation, stunted growth, and a drastic reduction in total crop yield.
-
-### 2) Recommended Treatment & Pesticides
-Immediate intervention is highly recommended to salvage the crop.
-- **Primary Fungicide:** Apply Chlorothalonil (e.g., Bravo Weather Stik) at 1.5 pt/acre.
-- **Alternative Systemic Option:** Azoxystrobin (e.g., Quadris) at 6.0 fl oz/acre.
-- **Application:** Spray early morning or late evening. Repeat every 7-10 days depending on weather conditions. Ensure full canopy coverage.
-
-### 🧪 Fertilizer Recommendations
-To support plant recovery and boost systemic resistance, adjust your nutrient profile:
-- **NPK Adjustment:** Apply a balanced 10-10-10 or 20-20-20 foliar feed to bypass root stress.
-- **Nitrogen (N):** If deficiency is noted, side-dress with 30 lbs/acre of Urea.
-- **Potassium (K):** Potassium sulfate at 50 lbs/acre will improve cell wall strength against fungal penetration.
-- **Frequency:** Apply immediately, then monitor for 14 days before secondary application.
-
-### 4) Preventative Measures
-- **Crop Rotation:** Do not plant susceptible crops in this field for at least 2-3 years.
-- **Irrigation:** Switch to drip irrigation. Avoid overhead watering which promotes fungal spore germination.
-- **Sanitation:** Remove and destroy severely infected plant debris immediately.
-      `.trim();
-
-      setResult(mockResult);
-
-      // Save to Firestore (and localStorage as fallback)
+      const { disease, confidence } = extractScanFields(trimmed);
       await saveScan({
-        title: extractTitleFromMarkdown(mockResult),
-        result: mockResult,
+        title: extractTitleFromMarkdown(trimmed),
+        result: trimmed,
         imageBase64: image,
         date: new Date().toISOString(),
-        confidence: selected.confidence,
-        disease: selected.name,
+        confidence: confidence || undefined,
+        disease: disease || undefined,
       });
 
     } catch (e: any) {
       console.error(e);
-      setResult(`**Error processing image.**\n\n${e.message}`);
+      setResult(`**Error processing image.**\n\n${e.message}\n\n*Tip: Run the app with \`npm run dev\` so the API server is available on the same origin, and optionally set \`GEMINI_API_KEY\` for live vision analysis.*`);
     } finally {
       setLoading(false);
     }

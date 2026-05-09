@@ -1,9 +1,25 @@
-import { Calendar, UploadCloud, RefreshCw, X, Download, TrendingUp, Send, Bot, User as UserIcon } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useRef, useEffect } from 'react';
+import { Calendar, UploadCloud, RefreshCw, X, Download, TrendingUp, Send, Bot, BookmarkPlus, FolderOpen } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import Markdown from 'react-markdown';
 import { useLocation } from '../contexts/LocationContext';
 import { YieldPredictionWidget } from '../components/widgets/YieldPredictionWidget';
+import { useUser } from '../contexts/UserContext';
+import { postAi } from '../lib/aiClient';
+
+async function fetchWeatherSnippet(lat: number, lng: number): Promise<string> {
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current_weather=true&daily=precipitation_probability_max,precipitation_sum&timezone=auto&forecast_days=4`;
+    const res = await fetch(url);
+    const j = await res.json();
+    const t = j?.current_weather?.temperature;
+    const probs: number[] = j?.daily?.precipitation_probability_max?.slice(0, 4) || [];
+    const rainBits = probs.length ? `Next days rain chance (max %): ${probs.join(', ')}.` : '';
+    return [`Approx. current temperature: ${t ?? 'n/a'}°C.`, rainBits].filter(Boolean).join(' ');
+  } catch {
+    return '';
+  }
+}
 
 interface Message {
   role: 'user' | 'assistant';
@@ -18,9 +34,16 @@ export function Planner() {
   const [schedule, setSchedule] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [chatInput, setChatInput] = useState('');
+  const [savingPlan, setSavingPlan] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { location } = useLocation();
+  const { firebaseUser, timetables, saveTimetable, user } = useUser();
+
+  const scheduleDayBlocks = useMemo(() => {
+    if (!schedule) return [];
+    return schedule.split(/\n(?=###\s*Day)/).filter((b) => /^###\s*Day/i.test(b.trim()));
+  }, [schedule]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -43,46 +66,63 @@ export function Planner() {
     if (!reportText) return;
     setLoading(true);
     setSchedule(null);
+    setMessages([]);
     try {
-      // Simulate highly advanced AI processing delay (AgriVision Planner AI)
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      const weatherHint = await fetchWeatherSnippet(location.lat, location.lng);
+      const farmBits = [
+        user?.farmDetails?.primaryCrop && `Primary crop: ${user.farmDetails.primaryCrop}`,
+        user?.farmDetails?.soilType && `Soil type: ${user.farmDetails.soilType}`,
+      ].filter(Boolean).join('. ');
 
-      const mockSchedule = `
-# 📅 7-Day Precision Farm Timetable
-*Optimized by AgriVision Planner AI*
+      const promptSections = [
+        'Timetable',
+        'Generate a practical 7-day precision farm Timetable in Markdown based on the crop analysis report below.',
+        `Location context: ${location.city || 'Unknown'}, ${location.state || ''}.`,
+      ];
+      if (weatherHint) promptSections.push(`Weather context: ${weatherHint}`);
+      if (farmBits) promptSections.push(`Farm profile: ${farmBits}`);
+      promptSections.push(
+        '',
+        '--- REPORT START ---',
+        reportText,
+        '--- REPORT END ---',
+        '',
+        'Requirements:',
+        '- Output Markdown only.',
+        '- Start with one title line like "# 7-Day Farm Timetable".',
+        '- For each day use exactly: ### Day N: Short descriptive title (N from 1 to 7).',
+        '- Under each day use bullet lines starting with "-" for tasks.',
+        '- Where helpful include times like **06:00 AM - 07:00 AM:** before task labels.',
+        '- Include watering (💧), fertilizer (🧪), pest/disease control (🛡️), and monitoring tasks when relevant.',
+      );
+      const prompt = promptSections.join('\n');
 
-### Day 1: Immediate Intervention & Treatment
-- **06:00 AM - 07:00 AM:** 🛡️ **Pest Control Actions:** Apply primary fungicide (e.g., Chlorothalonil at 1.5 pt/acre) while temperatures are cool to arrest disease spread.
-- **08:00 AM - 09:00 AM:** 💧 **Watering Schedule:** Light baseline irrigation via drip system (50% normal capacity) to avoid waterlogging the soil.
-- **04:00 PM - 05:00 PM:** 🧪 **Fertilizer Recommendations:** Apply a 20-20-20 foliar spray to bypass root stress and deliver immediate nutrients.
-
-### Day 2: Soil Health Focus
-- **06:00 AM - 08:00 AM:** 💧 **Watering Schedule:** Standard drip irrigation.
-- **08:30 AM - 10:00 AM:** 🧪 **Fertilizer Recommendations:** Side-dress with 30 lbs/acre of Urea to specifically boost nitrogen levels.
-
-### Day 3: Observation & Maintenance
-- **All Day:** Monitor the lower canopy for new lesions or pest activity.
-- **06:00 AM - 08:00 AM:** 💧 **Watering Schedule:** Deep soil watering to encourage root growth.
-
-### Day 4: Secondary Nutrient Boost
-- **06:00 AM - 08:00 AM:** 💧 **Watering Schedule:** Standard drip irrigation.
-- **04:00 PM - 05:00 PM:** 🧪 **Fertilizer Recommendations:** Apply Potassium sulfate (50 lbs/acre). This is critical to strengthen plant cell walls against future fungal attacks.
-
-### Day 5-6: Stabilization
-- **06:00 AM - 08:00 AM (Daily):** 💧 **Watering Schedule:** Maintain standard soil moisture levels. Avoid overhead watering completely.
-- **Afternoon:** Scout for secondary pest infestations (e.g., aphids).
-
-### Day 7: Preventative Cycle
-- **06:00 AM - 08:00 AM:** 💧 **Watering Schedule:** Deep watering.
-- **05:00 PM - 06:00 PM:** 🛡️ **Pest Control Actions:** Preventative organic neem oil spray application across the entire field.
-      `.trim();
-      
-      setSchedule(mockSchedule);
+      const aiSchedule = await postAi({ text: prompt });
+      setSchedule(aiSchedule.trim());
     } catch (e: any) {
       console.error(e);
-      setSchedule(`**Error generating schedule.**\n\n${e.message}`);
+      setSchedule(`**Error generating schedule.**\n\n${e.message}\n\n*Use \`npm run dev\` for the API server; add \`GEMINI_API_KEY\` for richer plans.*`);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const extractTimetableTitle = (md: string) => {
+    const m = md.match(/^#\s+(.+)/m);
+    return (m?.[1] || 'Saved farm timetable').replace(/[*_]/g, '').slice(0, 80);
+  };
+
+  const handleSaveTimetable = async () => {
+    if (!schedule || !firebaseUser) return;
+    setSavingPlan(true);
+    try {
+      await saveTimetable({
+        title: extractTimetableTitle(schedule),
+        content: schedule,
+        createdAt: new Date().toISOString(),
+      });
+    } finally {
+      setSavingPlan(false);
     }
   };
 
@@ -96,18 +136,18 @@ export function Planner() {
     setChatLoading(true);
 
     try {
-      // Simulate chat response delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      const responses = [
-        "Based on your timetable, you should strictly avoid overhead watering to prevent further fungal spread. Stick to the early morning drip irrigation scheduled for 06:00 AM.",
-        "The recommended 20-20-20 foliar spray acts immediately by absorbing through the leaves, which bypasses the stressed root system. Apply it precisely at 04:00 PM when the sun is lower.",
-        "If it rains heavily on Day 3, pause the scheduled irrigation and rely on soil moisture sensors to dictate when to resume the schedule.",
-        "Yes, the Urea side-dressing is essential. The nitrogen boost will help the crop recover lost canopy volume caused by the detected blight."
-      ];
-      
-      const mockChatResult = responses[Math.floor(Math.random() * responses.length)];
-      setMessages(prev => [...prev, { role: 'assistant', content: mockChatResult }]);
+      const prompt = [
+        'You help farmers follow their AI-generated timetable.',
+        'Here is their current timetable:',
+        '---',
+        schedule,
+        '---',
+        `Farmer question: ${userMessage}`,
+        'Answer in concise Markdown. Reference specific days or times from the timetable when useful.',
+      ].join('\n');
+
+      const reply = await postAi({ text: prompt });
+      setMessages(prev => [...prev, { role: 'assistant', content: reply.trim() }]);
     } catch (err: any) {
       setMessages(prev => [...prev, { role: 'assistant', content: `**Error:** ${err.message}` }]);
     } finally {
@@ -151,6 +191,30 @@ export function Planner() {
       <div className="mt-4">
         <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-1">Generate Timetable</h2>
         <p className="text-slate-500 text-sm mb-6">Upload your crop analysis report to generate a precisely timed action plan for watering, fertilizing, and treatments based on weather constraints.</p>
+
+        {firebaseUser && timetables.length > 0 && (
+          <div className="glass-panel p-4 rounded-2xl mb-6 border border-slate-200 dark:border-slate-700">
+            <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+              <FolderOpen className="w-4 h-4 text-brand-500" /> Saved plans
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {timetables.slice(0, 8).map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => {
+                    setSchedule(t.content);
+                    setMessages([]);
+                  }}
+                  className="text-left px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-brand-50 dark:hover:bg-brand-900/30 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-800 dark:text-slate-200 max-w-[220px] truncate"
+                  title={t.title}
+                >
+                  {t.title}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         
         {!reportText ? (
           <div 
@@ -228,7 +292,12 @@ export function Planner() {
 
                 {/* Day Cards */}
                 <div className="space-y-4">
-                  {schedule.split(/\n(?=###\s*Day)/).map((dayBlock, dayIndex) => {
+                  {scheduleDayBlocks.length === 0 && (
+                    <div className="glass-panel p-6 rounded-2xl markdown-body prose dark:prose-invert max-w-none">
+                      <Markdown>{schedule}</Markdown>
+                    </div>
+                  )}
+                  {scheduleDayBlocks.map((dayBlock, dayIndex) => {
                     const titleMatch = dayBlock.match(/###\s*(Day\s*[\d\-–]+[^:\n]*):?\s*([^\n]*)/i);
                     if (!titleMatch) return null;
 
@@ -300,6 +369,20 @@ export function Planner() {
                     );
                   })}
                 </div>
+
+                {firebaseUser && scheduleDayBlocks.length > 0 && (
+                  <div className="mt-6 flex justify-center">
+                    <button
+                      type="button"
+                      onClick={handleSaveTimetable}
+                      disabled={savingPlan}
+                      className="px-6 py-2.5 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-full text-sm font-bold flex items-center gap-2 hover:opacity-90 disabled:opacity-50"
+                    >
+                      {savingPlan ? <RefreshCw className="w-4 h-4 animate-spin" /> : <BookmarkPlus className="w-4 h-4" />}
+                      Save plan to cloud
+                    </button>
+                  </div>
+                )}
               </motion.div>
             )}
 

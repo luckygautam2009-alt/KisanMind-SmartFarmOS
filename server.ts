@@ -9,6 +9,17 @@ import { GoogleGenAI, Type } from "@google/genai";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+/** Accept raw base64 or a data URL (`data:image/png;base64,...`). */
+function parseImageInput(raw: string | undefined): { mimeType: string; data: string } | null {
+  if (!raw || typeof raw !== 'string') return null;
+  const trimmed = raw.trim();
+  const dataUrl = trimmed.match(/^data:([^;]+);base64,([\s\S]+)$/i);
+  if (dataUrl) {
+    return { mimeType: dataUrl[1] || 'image/jpeg', data: dataUrl[2].replace(/\s/g, '') };
+  }
+  return { mimeType: 'image/jpeg', data: trimmed.replace(/\s/g, '') };
+}
+
 async function startServer() {
   const app = express();
   const PORT = 3000;
@@ -30,17 +41,22 @@ async function startServer() {
          } else if (text && text.includes('Analyze the uploaded crop')) {
            const mockReport = `## Health Status & Disease Detection\n\n**Status**: ⚠️ **Infected**\n**Detected Disease/Pest**: Early Blight (Alternaria solani)\n**Confidence Score**: 96.5% *(Analyzed with MobileNet ensemble heuristics)*\n\n### 🧪 Exact Pesticides Recommended\n1. **Chlorothalonil 75% WP**: Apply 2 grams/liter.\n2. **Mancozeb 75% WP**: Apply 1.5 grams/liter.\n\n### 🌿 Exact Fertilizers Recommended *(Random Forest Output)*\n* **Nitrogen (N)**: 120 kg/ha\n* **Phosphorus (P)**: 60 kg/ha\n* **Potassium (K)**: 80 kg/ha\n* **Formula**: Use NPK 20-10-10 mixture.\n\n### 📅 Detailed Treatment Plan\n* **Day 1**: Spray Chlorothalonil early morning.\n* **Day 3**: Supplement with Potassium spray.\n* **Watering**: Stop overhead irrigation. Use drip to keep leaves dry.\n\n> *Note: This is a high-accuracy simulated report. Add your **GEMINI_API_KEY** in the AI Studio Secrets panel for live image analysis.*`;
            return res.json({ result: mockReport });
+         } else if (text && text.includes('Weather farm advisory')) {
+           const demoAdv =
+             '## Weather advisory (demo mode)\n\n- Prefer spraying pesticides and foliar feeds in early morning or late evening when wind is lower.\n- If rain probability exceeds 60% in the next 48 hours, delay spraying to avoid wash-off.\n- During hot afternoons above 35°C, avoid irrigation mist on leaves to reduce fungal pressure.\n- Match nitrogen applications to expected rainfall to reduce leaching.\n\n*Add **GEMINI_API_KEY** for a tailored advisory from your live forecast and crop profile.*';
+           return res.json({ result: demoAdv });
          } else {
            return res.json({ result: "I am currently in Demo Mode. To activate my live crop intelligence and voice assistant, please add your GEMINI_API_KEY in the AI Studio Settings / Secrets panel!" });
          }
       }
       
       const parts: any[] = [];
-      if (imageBase64) {
+      const parsedImg = parseImageInput(imageBase64);
+      if (parsedImg) {
         parts.push({
           inlineData: {
-            mimeType: "image/jpeg",
-            data: imageBase64,
+            mimeType: parsedImg.mimeType,
+            data: parsedImg.data,
           },
         });
       }
@@ -65,6 +81,10 @@ async function startServer() {
          } else if (req.body.text && req.body.text.includes('Analyze the uploaded crop')) {
            const mockReport = `## Health Status & Disease Detection\n\n**Status**: ⚠️ **Infected**\n**Detected Disease/Pest**: Early Blight (Alternaria solani)\n**Confidence Score**: 96.5% *(Analyzed with MobileNet ensemble heuristics)*\n\n### 🧪 Exact Pesticides Recommended\n1. **Chlorothalonil 75% WP**: Apply 2 grams/liter.\n2. **Mancozeb 75% WP**: Apply 1.5 grams/liter.\n\n### 🌿 Exact Fertilizers Recommended *(Random Forest Output)*\n* **Nitrogen (N)**: 120 kg/ha\n* **Phosphorus (P)**: 60 kg/ha\n* **Potassium (K)**: 80 kg/ha\n* **Formula**: Use NPK 20-10-10 mixture.\n\n### 📅 Detailed Treatment Plan\n* **Day 1**: Spray Chlorothalonil early morning.\n* **Day 3**: Supplement with Potassium spray.\n* **Watering**: Stop overhead irrigation. Use drip to keep leaves dry.\n\n> *Note: This is a high-accuracy simulated report. Add your **GEMINI_API_KEY** in the AI Studio Secrets panel for live image analysis.*`;
            return res.json({ result: mockReport });
+         } else if (req.body.text && req.body.text.includes('Weather farm advisory')) {
+           const demoAdv =
+             '## Weather advisory (demo mode)\n\n- Prefer spraying pesticides and foliar feeds in early morning or late evening when wind is lower.\n- If rain probability exceeds 60% in the next 48 hours, delay spraying to avoid wash-off.\n- During hot afternoons above 35°C, avoid irrigation mist on leaves to reduce fungal pressure.\n- Match nitrogen applications to expected rainfall to reduce leaching.\n\n*Add **GEMINI_API_KEY** for a tailored advisory from your live forecast and crop profile.*';
+           return res.json({ result: demoAdv });
          } else {
            return res.json({ result: "I am currently in Demo Mode. To activate my live crop intelligence and voice assistant, please add your GEMINI_API_KEY in the AI Studio Settings / Secrets panel!" });
          }

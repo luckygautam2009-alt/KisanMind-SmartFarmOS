@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Bot, X, Send, Mic, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { postAi } from '../../lib/aiClient';
 
 export function AIAssistant() {
   const [isOpen, setIsOpen] = useState(false);
@@ -9,6 +10,7 @@ export function AIAssistant() {
     { role: 'ai', text: 'Hello! I am KisanMind AI. I can help you with crop disease diagnosis, weather alerts, and mandi prices. How can I assist you today?' }
   ]);
   const [input, setInput] = useState('');
+  const [sendLoading, setSendLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { lang } = useLanguage();
 
@@ -20,20 +22,37 @@ export function AIAssistant() {
     scrollToBottom();
   }, [messages, isOpen]);
 
-  const handleSend = (e?: React.FormEvent) => {
+  const handleSend = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!input.trim()) return;
-    
-    setMessages(prev => [...prev, { role: 'user', text: input }]);
+    const q = input.trim();
+    if (!q || sendLoading) return;
+
+    setMessages(prev => [...prev, { role: 'user', text: q }]);
     setInput('');
-    
-    // Mock AI response
-    setTimeout(() => {
-      setMessages(prev => [...prev, { 
-        role: 'ai', 
-        text: 'I am analyzing your request. Since this is a demo, I am highly capable but restricted to mock responses. Have you tried uploading a leaf scan on the Dashboard?' 
-      }]);
-    }, 1000);
+    setSendLoading(true);
+
+    try {
+      const hint =
+        lang === 'hi'
+          ? 'User writes in Hindi or English; reply in the same language when possible.'
+          : 'Reply in clear Markdown when lists help.';
+      const reply = await postAi({
+        text: `Farmer assistant chat.\n${hint}\nQuestion: ${q}`,
+      });
+      setMessages(prev => [...prev, { role: 'ai', text: reply.trim() }]);
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error ? err.message : 'Could not reach the AI server.';
+      setMessages(prev => [
+        ...prev,
+        {
+          role: 'ai',
+          text: `${msg} Run the app with npm run dev so /api/ai is available.`,
+        },
+      ]);
+    } finally {
+      setSendLoading(false);
+    }
   };
 
   return (
@@ -98,10 +117,10 @@ export function AIAssistant() {
               </div>
               <button 
                 type="submit"
-                disabled={!input.trim()}
+                disabled={!input.trim() || sendLoading}
                 className="w-10 h-10 rounded-full bg-brand-500 hover:bg-brand-600 disabled:opacity-50 disabled:hover:bg-brand-500 text-white flex items-center justify-center transition-colors shadow-md shrink-0"
               >
-                <Send className="w-4 h-4 ml-0.5" />
+                <Send className={`w-4 h-4 ml-0.5 ${sendLoading ? 'opacity-50' : ''}`} />
               </button>
             </form>
           </motion.div>

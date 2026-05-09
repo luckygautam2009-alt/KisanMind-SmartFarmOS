@@ -217,6 +217,16 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     const ref = doc(db, 'users', firebaseUser.uid);
     await updateDoc(ref, data as Record<string, unknown>);
     setUser(prev => prev ? { ...prev, ...data } : null);
+    const profile: { displayName?: string; photoURL?: string } = {};
+    if (data.name !== undefined) profile.displayName = data.name;
+    if (data.photoURL !== undefined) profile.photoURL = data.photoURL;
+    if (Object.keys(profile).length > 0) {
+      try {
+        await updateProfile(firebaseUser, profile);
+      } catch {
+        // Firestore profile still updates; Auth may reject very long or non-HTTP photo URLs.
+      }
+    }
   };
 
   const updateFarmDetails = async (data: Partial<FarmDetails>) => {
@@ -230,17 +240,22 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const saveScan = async (scan: Omit<ScanRecord, 'id' | 'userId'>) => {
     const uid = firebaseUser?.uid;
     if (!uid) {
-      // Not logged in → save only to localStorage
       const record: ScanRecord = { ...scan, userId: 'guest', id: Date.now().toString() };
-      setScanHistory(prev => [record, ...prev].slice(0, 10));
-      try { localStorage.setItem('kisanmind_recent_scans', JSON.stringify([record, ...scanHistory].slice(0, 4))); } catch {}
+      setScanHistory(prev => {
+        const next = [record, ...prev].slice(0, 10);
+        try { localStorage.setItem('kisanmind_recent_scans', JSON.stringify(next.slice(0, 4))); } catch {}
+        return next;
+      });
       return;
     }
     const record: ScanRecord = { ...scan, userId: uid };
     const docRef = await addDoc(collection(db, 'scans'), record);
     const newRecord = { ...record, id: docRef.id };
-    setScanHistory(prev => [newRecord, ...prev].slice(0, 20));
-    try { localStorage.setItem('kisanmind_recent_scans', JSON.stringify([newRecord, ...scanHistory].slice(0, 4))); } catch {}
+    setScanHistory(prev => {
+      const next = [newRecord, ...prev].slice(0, 20);
+      try { localStorage.setItem('kisanmind_recent_scans', JSON.stringify(next.slice(0, 4))); } catch {}
+      return next;
+    });
   };
 
   const deleteScan = async (scanId: string) => {
