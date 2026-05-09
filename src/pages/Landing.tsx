@@ -187,7 +187,7 @@ export function Landing() {
                 </div>
               </div>
               <div className="w-full md:w-2/5 relative min-h-[250px] overflow-hidden">
-                <img src="/landing/crop_scan.png" alt="Crop Scan" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity group-hover:scale-105 duration-700" />
+                <img src="https://images.unsplash.com/photo-1530836361253-294c79808608?auto=format&fit=crop&w=800&q=80" alt="Crop Scan" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity group-hover:scale-105 duration-700" />
                 <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-transparent to-transparent hidden md:block"></div>
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent md:hidden"></div>
               </div>
@@ -236,7 +236,7 @@ export function Landing() {
                 </div>
               </div>
               <div className="w-full md:w-1/3 relative min-h-[250px] overflow-hidden">
-                <img src="/landing/mandi_market.png" alt="Market" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity group-hover:scale-105 duration-700" />
+                <img src="https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?auto=format&fit=crop&w=800&q=80" alt="Market" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity group-hover:scale-105 duration-700" />
                 <div className="absolute inset-0 bg-gradient-to-l from-slate-950/80 via-transparent to-transparent hidden md:block"></div>
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent md:hidden"></div>
               </div>
@@ -308,24 +308,15 @@ export function Landing() {
                 <X className="w-6 h-6" />
               </button>
               
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 to-brand-950 p-8 text-center border-[8px] border-slate-800 rounded-3xl">
-                <motion.div
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: 0.2, type: "spring" }}
-                  className="w-24 h-24 rounded-full bg-brand-500/20 flex items-center justify-center mb-6"
-                >
-                  <Play className="w-12 h-12 text-brand-400 fill-current" />
-                </motion.div>
-                <h3 className="text-3xl sm:text-5xl font-black text-white mb-4">{t('demoWelcome')}</h3>
-                <p className="text-lg sm:text-xl text-slate-300 max-w-2xl font-medium mb-8">
-                  {t('demoDesc')}
-                </p>
-                <div className="flex flex-wrap justify-center gap-4 hidden sm:flex">
-                  <div className="px-6 py-3 rounded-full bg-white/10 text-white text-sm font-bold backdrop-blur-md">{t('weatherRisks')}</div>
-                  <div className="px-6 py-3 rounded-full bg-white/10 text-white text-sm font-bold backdrop-blur-md">{t('mandiPrices')}</div>
-                  <div className="px-6 py-3 rounded-full bg-white/10 text-white text-sm font-bold backdrop-blur-md">{t('cropScan')}</div>
-                </div>
+              <div className="absolute inset-0 bg-black">
+                <iframe 
+                  className="w-full h-full"
+                  src={`https://www.youtube.com/embed/Xp0hV_I6k64?autoplay=1&mute=0`}
+                  title="KisanMind Demo Video"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                ></iframe>
               </div>
             </motion.div>
           </div>
