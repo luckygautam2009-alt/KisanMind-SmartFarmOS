@@ -181,6 +181,21 @@ async function startServer() {
     }
   });
 
+  app.post("/api/subscribe", async (req, res) => {
+    try {
+      const { contact } = req.body;
+      if (!contact) {
+        return res.status(400).json({ error: "Contact information is required." });
+      }
+      console.log(`New subscription request: ${contact}`);
+      // In a real app, save to DB here
+      res.json({ message: "Successfully subscribed!" });
+    } catch (e: any) {
+      console.error("Subscription Error:", e);
+      res.status(500).json({ error: "Failed to process subscription." });
+    }
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({

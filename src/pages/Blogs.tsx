@@ -86,7 +86,30 @@ const BLOG_POSTS = [
 
 export function Blogs() {
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [contact, setContact] = useState('');
+  const [isSubscribing, setIsSubscribing] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
   const { lang, t } = useLanguage();
+
+  const handleSubscribe = async () => {
+    if (!contact) return;
+    setIsSubscribing(true);
+    try {
+      const response = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contact }),
+      });
+      if (response.ok) {
+        setIsSubscribed(true);
+        setContact('');
+      }
+    } catch (error) {
+      console.error('Subscription failed:', error);
+    } finally {
+      setIsSubscribing(false);
+    }
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 pb-32">
@@ -206,14 +229,32 @@ export function Blogs() {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-3">
-               <input 
-                 type="text" 
-                 placeholder="Your phone or email" 
-                 className="flex-1 px-8 py-5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white placeholder:text-white/60 outline-none focus:ring-2 focus:ring-white transition-all font-bold"
-               />
-               <button className="px-10 py-5 bg-white text-brand-600 rounded-full font-black uppercase tracking-widest text-sm hover:scale-105 active:scale-95 transition-all shadow-xl">
-                 Subscribe
-               </button>
+               {isSubscribed ? (
+                 <motion.div 
+                   initial={{ scale: 0.8, opacity: 0 }}
+                   animate={{ scale: 1, opacity: 1 }}
+                   className="flex-1 px-8 py-5 rounded-full bg-white/20 backdrop-blur-md border border-white/40 text-white font-black text-center"
+                 >
+                   🎉 Thanks for subscribing!
+                 </motion.div>
+               ) : (
+                 <>
+                   <input 
+                     type="text" 
+                     value={contact}
+                     onChange={(e) => setContact(e.target.value)}
+                     placeholder="Your phone or email" 
+                     className="flex-1 px-8 py-5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white placeholder:text-white/60 outline-none focus:ring-2 focus:ring-white transition-all font-bold"
+                   />
+                   <button 
+                     onClick={handleSubscribe}
+                     disabled={isSubscribing || !contact}
+                     className="px-10 py-5 bg-white text-brand-600 rounded-full font-black uppercase tracking-widest text-sm hover:scale-105 active:scale-95 transition-all shadow-xl disabled:opacity-50 disabled:scale-100"
+                   >
+                     {isSubscribing ? 'Subscribing...' : 'Subscribe'}
+                   </button>
+                 </>
+               )}
             </div>
          </div>
       </section>
