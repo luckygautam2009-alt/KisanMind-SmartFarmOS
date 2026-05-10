@@ -89,23 +89,58 @@ export function Blogs() {
   const [contact, setContact] = useState('');
   const [isSubscribing, setIsSubscribing] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { lang, t } = useLanguage();
 
+  const validateContact = (val: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^\+?[0-9]{10,14}$/; // More flexible phone validation (10-14 digits, optional +)
+    return emailRegex.test(val.trim()) || phoneRegex.test(val.trim());
+  };
+
   const handleSubscribe = async () => {
-    if (!contact) return;
+    console.log("Subscribe attempt with:", contact);
+    setError(null);
+    const trimmedContact = contact.trim();
+    
+    if (!trimmedContact) {
+      console.log("Empty contact, ignoring.");
+      return;
+    }
+    
+    if (!validateContact(trimmedContact)) {
+      console.log("Validation failed for:", trimmedContact);
+      setError(lang === 'hi' ? 'कृपया एक मान्य ईमेल या मोबाइल नंबर दर्ज करें।' : 'Please enter a valid email or mobile number.');
+      setIsSubscribed(false); // Explicitly ensure false
+      return;
+    }
+
     setIsSubscribing(true);
     try {
+      console.log("Sending request to /api/subscribe...");
       const response = await fetch('/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contact }),
+        body: JSON.stringify({ contact: trimmedContact }),
       });
+      
+      const data = await response.json();
+      console.log("Server response:", data);
+
       if (response.ok) {
+        console.log("Subscription successful!");
         setIsSubscribed(true);
         setContact('');
+        setError(null);
+      } else {
+        console.log("Server returned error:", data.error);
+        setError(data.error || 'Something went wrong.');
+        setIsSubscribed(false);
       }
     } catch (error) {
-      console.error('Subscription failed:', error);
+      console.error('Subscription network error:', error);
+      setError('Connection error. Please try again.');
+      setIsSubscribed(false);
     } finally {
       setIsSubscribing(false);
     }
@@ -228,7 +263,7 @@ export function Blogs() {
               Get the latest crop techniques, market trends, and policy updates delivered straight to your WhatsApp and email.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex flex-col gap-3">
                {isSubscribed ? (
                  <motion.div 
                    initial={{ scale: 0.8, opacity: 0 }}
@@ -239,20 +274,38 @@ export function Blogs() {
                  </motion.div>
                ) : (
                  <>
-                   <input 
-                     type="text" 
-                     value={contact}
-                     onChange={(e) => setContact(e.target.value)}
-                     placeholder="Your phone or email" 
-                     className="flex-1 px-8 py-5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white placeholder:text-white/60 outline-none focus:ring-2 focus:ring-white transition-all font-bold"
-                   />
-                   <button 
-                     onClick={handleSubscribe}
-                     disabled={isSubscribing || !contact}
-                     className="px-10 py-5 bg-white text-brand-600 rounded-full font-black uppercase tracking-widest text-sm hover:scale-105 active:scale-95 transition-all shadow-xl disabled:opacity-50 disabled:scale-100"
+                   <motion.div 
+                      animate={error ? { x: [-10, 10, -10, 10, 0] } : {}}
+                      transition={{ duration: 0.4 }}
+                      className="flex flex-col sm:flex-row gap-3"
                    >
-                     {isSubscribing ? 'Subscribing...' : 'Subscribe'}
-                   </button>
+                      <input 
+                        type="text" 
+                        value={contact}
+                        onChange={(e) => {
+                          setContact(e.target.value);
+                          if (error) setError(null);
+                        }}
+                        placeholder="Your phone or email" 
+                        className={`flex-1 px-8 py-5 rounded-full bg-white/20 backdrop-blur-md border ${error ? 'border-red-400 ring-4 ring-red-400/20' : 'border-white/30 focus:ring-white'} text-white placeholder:text-white/60 outline-none focus:ring-2 transition-all font-bold`}
+                      />
+                      <button 
+                        onClick={handleSubscribe}
+                        disabled={isSubscribing || !contact}
+                        className="px-10 py-5 bg-white text-brand-600 rounded-full font-black uppercase tracking-widest text-sm hover:scale-105 active:scale-95 transition-all shadow-xl disabled:opacity-50 disabled:scale-100"
+                      >
+                        {isSubscribing ? 'Subscribing...' : 'Subscribe'}
+                      </button>
+                   </motion.div>
+                   {error && (
+                     <motion.p 
+                       initial={{ opacity: 0, y: -10 }}
+                       animate={{ opacity: 1, y: 0 }}
+                       className="text-red-100 bg-red-500/20 px-6 py-2 rounded-full text-sm font-bold inline-block self-start border border-red-500/30"
+                     >
+                       ⚠️ {error}
+                     </motion.p>
+                   )}
                  </>
                )}
             </div>

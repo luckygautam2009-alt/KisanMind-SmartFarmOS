@@ -187,6 +187,14 @@ async function startServer() {
       if (!contact) {
         return res.status(400).json({ error: "Contact information is required." });
       }
+
+      // Server-side validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const phoneRegex = /^\+?[0-9]{10,14}$/;
+      if (!emailRegex.test(contact) && !phoneRegex.test(contact)) {
+        return res.status(400).json({ error: "Invalid email or phone number format." });
+      }
+
       console.log(`New subscription request: ${contact}`);
       // In a real app, save to DB here
       res.json({ message: "Successfully subscribed!" });
