@@ -187,7 +187,7 @@ export function Landing() {
                 </div>
               </div>
               <div className="w-full md:w-2/5 relative min-h-[250px] overflow-hidden">
-                <img src="https://images.unsplash.com/photo-1595113316349-9fa4eb24f884?auto=format&fit=crop&w=800&q=80" alt="Tomato Crop" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity group-hover:scale-105 duration-700" />
+                <img src="https://images.unsplash.com/photo-1591857177580-dc82b9ac4e17?auto=format&fit=crop&w=800&q=80" alt="Tomato Crop" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity group-hover:scale-105 duration-700" />
                 <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-transparent to-transparent hidden md:block"></div>
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent md:hidden"></div>
               </div>
@@ -236,7 +236,7 @@ export function Landing() {
                 </div>
               </div>
               <div className="w-full md:w-1/3 relative min-h-[250px] overflow-hidden">
-                <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80" alt="Green Field" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity group-hover:scale-105 duration-700" />
+                <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=800&q=80" alt="Vegetable Market" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity group-hover:scale-105 duration-700" />
                 <div className="absolute inset-0 bg-gradient-to-l from-slate-950/80 via-transparent to-transparent hidden md:block"></div>
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent md:hidden"></div>
               </div>
