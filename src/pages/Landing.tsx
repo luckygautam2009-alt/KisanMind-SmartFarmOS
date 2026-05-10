@@ -187,13 +187,9 @@ export function Landing() {
                 </div>
               </div>
               <div className="w-full md:w-2/5 relative min-h-[250px] overflow-hidden">
-                <img 
-                  src="https://images.unsplash.com/photo-1599420186946-7b6fb4eaba23?auto=format&fit=crop&w=1200&q=80" 
-                  alt="Crop Scan" 
-                  className="absolute inset-0 w-full h-full object-cover opacity-100 group-hover:scale-110 transition-transform duration-1000" 
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/60 to-transparent hidden md:block"></div>
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent md:hidden"></div>
+                <img src="https://images.unsplash.com/photo-1592419044706-39796d40f98c?auto=format&fit=crop&w=800&q=80" alt="Tomato Disease Diagnosis" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity group-hover:scale-105 duration-700" />
+                <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-transparent to-transparent hidden md:block"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent md:hidden"></div>
               </div>
             </motion.div>
 
@@ -240,13 +236,9 @@ export function Landing() {
                 </div>
               </div>
               <div className="w-full md:w-1/3 relative min-h-[250px] overflow-hidden">
-                <img 
-                  src="https://images.unsplash.com/photo-1542831371-29b0f74f9713?auto=format&fit=crop&w=1200&q=80" 
-                  alt="Market" 
-                  className="absolute inset-0 w-full h-full object-cover opacity-100 group-hover:scale-110 transition-transform duration-1000" 
-                />
-                <div className="absolute inset-0 bg-gradient-to-l from-slate-950 via-slate-950/60 to-transparent hidden md:block"></div>
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent md:hidden"></div>
+                <img src="https://images.unsplash.com/photo-1625246333195-78d9c38ad449?auto=format&fit=crop&w=800&q=80" alt="Agricultural Field" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity group-hover:scale-105 duration-700" />
+                <div className="absolute inset-0 bg-gradient-to-l from-slate-950/80 via-transparent to-transparent hidden md:block"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent md:hidden"></div>
               </div>
             </motion.div>
 
