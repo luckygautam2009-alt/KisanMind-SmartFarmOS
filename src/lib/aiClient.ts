@@ -4,18 +4,21 @@
 export async function postAi(body: { 
   text?: string; 
   imageBase64?: string;
-  history?: { role: 'user' | 'model'; parts: { text: string }[] }[];
+  history?: any[];
 }): Promise<string> {
-  const res = await fetch('/api/ai', {
+  const res = await fetch('/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    body: JSON.stringify({
+      message: body.text,
+      imageBase64: body.imageBase64,
+      history: body.history
+    }),
   });
   const json = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const detail = typeof json?.details === 'string' ? json.details : '';
-    throw new Error(json?.error || detail || `AI request failed (${res.status})`);
+    throw new Error(json?.error || `Chat failed (${res.status})`);
   }
-  if (typeof json?.result === 'string') return json.result;
-  throw new Error('Invalid AI response');
+  if (typeof json?.reply === 'string') return json.reply;
+  throw new Error('Invalid chat response');
 }
