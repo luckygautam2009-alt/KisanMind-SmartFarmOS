@@ -133,15 +133,18 @@ async function startServer() {
          return res.json({ data: mockData });
       }
 
+      const isSearch = !!crop || (!!city && city !== location.city);
+      const itemCount = isSearch ? '1 to 3' : 'at least 15';
+
       const completion = await groq.chat.completions.create({
         messages: [
           { role: "system", content: "You are an expert Indian agricultural market analyst. Generate realistic, live Mandi price data based on the latest Agmarknet trends. Return a JSON object with a 'data' array of items. Focus EXCLUSIVELY on crops, vegetables, and fruits. DO NOT include dairy or milk." },
           { role: "user", content: `Generate realistic live mandi prices for ${locationLabel}, focusing ${targetCrop}. 
           Requirements:
-          1. Provide at least 15 items.
+          1. Provide ${itemCount} items total.
           2. Fields per item: 
-             - crop: (string) name of the crop (If a specific crop was searched, ensure it is at the top of the list)
-             - category: (string) 'Crops', 'Vegetables', or 'Fruits' (NO DAIRY)
+             - crop: (string) name of the crop
+             - category: (string) 'Crops', 'Vegetables', or 'Fruits'
              - market: (string) name of the mandi in or near ${locationLabel}
              - price: (NUMBER) current rate per quintal (NO COMMAS, NO CURRENCY SYMBOLS, MUST BE A NUMBER)
              - trend: (string) 'up', 'down', or 'stable'
