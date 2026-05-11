@@ -21,5 +21,6 @@ export async function postAi(body: {
   }
   const finalReply = json?.reply || json?.result;
   if (typeof finalReply === 'string') return finalReply;
-  throw new Error('Invalid chat response');
+  if (json?.error) throw new Error(json.error);
+  throw new Error('Invalid chat response from server');
 }
