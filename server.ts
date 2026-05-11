@@ -110,10 +110,12 @@ async function startServer() {
     try {
       const { city, state, crop } = req.body;
       const c = city || 'Local Area';
+      const s = state || 'India';
       const targetCrop = crop ? `specifically for ${crop} and other related crops` : 'at least 15 key crops relevant to that region';
       
+      console.log(`Mandi Request: city=${c}, crop=${crop || 'All'}`);
+
       if (!hasGroq) {
-         // Return mock data if no key
          const mockData = [
            { crop: 'Wheat (Sharbati)', category: 'Crops', market: `${c} Principal Mandi`, price: 2450, trend: 'up', change: '+2.4%', date: 'Live', distance: '12 km' },
            { crop: 'Soybean (Yellow)', category: 'Crops', market: `${c} Krishi Upaj Mandi`, price: 4200, trend: 'down', change: '-1.2%', date: 'Live', distance: '15 km' },
@@ -130,16 +132,36 @@ async function startServer() {
 
       const completion = await groq.chat.completions.create({
         messages: [
-          { role: "system", content: "You are an agricultural market data simulator. Generate a realistic JSON response containing current mandi prices, trends, distances, and crops. Reply ONLY with valid JSON." },
-          { role: "user", content: `Run a simulated LightGBM regression model based on current dynamic Agmarknet market data to predict realistic mandi prices for ${city || 'local area'}, ${state || 'India'}. Return highly accurate predictions ${targetCrop}. Include trend, distance, and 80-90% confidence score. List at least 15 items total.` }
+          { role: "system", content: "You are an expert Indian agricultural market analyst. Generate realistic, live Mandi price data based on the latest Agmarknet trends. Return a JSON object with a 'data' array of items." },
+          { role: "user", content: `Generate realistic live mandi prices for ${c}, ${s}. 
+          Requirements:
+          1. Provide at least 15 items.
+          2. Fields per item: 
+             - crop: (string) name of the crop
+             - category: (string) 'Crops', 'Vegetables', 'Fruits', or 'Dairy'
+             - market: (string) name of the mandi in/near ${c}
+             - price: (NUMBER) current rate per quintal (NO COMMAS, NO CURRENCY SYMBOLS, MUST BE A NUMBER)
+             - trend: (string) 'up', 'down', or 'stable'
+             - change: (string) e.g. '+2.5%'
+             - date: (string) 'Live'
+             - distance: (string) e.g. '5 km'
+          3. Ensure prices are realistic for the region.
+          4. Return ONLY valid JSON.` }
         ],
         model: "llama-3.3-70b-versatile",
         response_format: { type: "json_object" }
       });
 
-      const content = completion.choices[0]?.message?.content || "[]";
-      const parsed = JSON.parse(content);
-      res.json({ data: Array.isArray(parsed) ? parsed : (parsed.data || parsed.prices || []) });
+      let content = completion.choices[0]?.message?.content || '{"data":[]}';
+      let parsed = JSON.parse(content);
+      
+      // Ensure price is always a number
+      const cleanData = (parsed.data || parsed.prices || parsed.items || []).map((item: any) => ({
+        ...item,
+        price: typeof item.price === 'string' ? parseFloat(item.price.replace(/[^0-9.]/g, '')) : item.price
+      }));
+
+      res.json({ data: cleanData });
 
     } catch (e: any) {
       console.error("Mandi API Error:", e);
