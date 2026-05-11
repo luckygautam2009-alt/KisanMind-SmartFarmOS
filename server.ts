@@ -56,7 +56,12 @@ async function startServer() {
 
       const parsedImg = parseImageInput(imageBase64);
       const messages: any[] = [
-        { role: "system", content: "You are KisanMind AI, an elite agricultural autonomous agent. Act brilliant, technical, and empathetic to farmers. Use detailed Markdown. Identify exact causes, fertilizers, and treatments. Always maintain context of the conversation." }
+        { 
+          role: "system", 
+          content: imageBase64 
+            ? "You are an expert plant pathologist. Analyze the provided crop image and respond with a detailed report. Use EXACTLY these bold headers for key data so the system can parse them:\n- **Detected Disease/Pest**: [Name of disease]\n- **Confidence**: [Percentage like 95%]\n- **Severity**: [Low/Medium/High]\n\nThen provide a 'Treatment Plan' and 'Fertilizer Recommendations' in clear Markdown."
+            : "You are KisanMind AI, an elite agricultural assistant. Act brilliant, technical, and empathetic to farmers. Use detailed Markdown. Identify exact causes, fertilizers, and treatments." 
+        }
       ];
 
       // Add history if present
