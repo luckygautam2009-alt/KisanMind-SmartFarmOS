@@ -14,7 +14,7 @@ import {
 import { useLocation } from '../contexts/LocationContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
-type Category = 'All' | 'Crops' | 'Vegetables' | 'Fruits' | 'Dairy';
+type Category = 'All' | 'Crops' | 'Vegetables' | 'Fruits';
 
 interface MandiItem {
   crop: string;
@@ -37,7 +37,7 @@ export function Market() {
   const [error, setError] = useState<string | null>(null);
   const [selectedCrop, setSelectedCrop] = useState<MandiItem | null>(null);
 
-  const categories: Category[] = ['All', 'Crops', 'Vegetables', 'Fruits', 'Dairy'];
+  const categories: Category[] = ['All', 'Crops', 'Vegetables', 'Fruits'];
 
   // Mock trend data for the last 15 days
   const trendData = useMemo(() => {
@@ -148,14 +148,11 @@ export function Market() {
         if (active === 'crops') categoryMatch = ['crop', 'grain', 'cereal', 'pulse'].some(c => itemCat.includes(c));
         else if (active === 'vegetables') categoryMatch = ['vegetable', 'veg'].some(c => itemCat.includes(c));
         else if (active === 'fruits') categoryMatch = ['fruit'].some(c => itemCat.includes(c));
-        else if (active === 'dairy') categoryMatch = ['dairy', 'milk'].some(c => itemCat.includes(c));
       }
       
-      // We still filter locally for smooth UI, but the "Search" button triggers a fresh fetch
-      const cropMatch = item.crop.toLowerCase().includes(search.toLowerCase());
-      const marketMatch = item.market.toLowerCase().includes(locationSearch.toLowerCase());
-      
-      return categoryMatch && cropMatch && marketMatch;
+      // When the user clicks "Search", the server already returns the correct matches.
+      // We only need to filter by category locally for a smooth UI experience.
+      return categoryMatch;
     });
   }, [prices, search, locationSearch, activeCategory]);
 

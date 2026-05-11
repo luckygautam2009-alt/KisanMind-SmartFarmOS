@@ -111,9 +111,12 @@ async function startServer() {
       const { city, state, crop } = req.body;
       const c = city || 'Local Area';
       const s = state || 'India';
+      
+      // If the user typed a state in the city box, we treat it as a regional search
+      const locationLabel = (c.toLowerCase() === s.toLowerCase()) ? s : `${c}, ${s}`;
       const targetCrop = crop ? `specifically for ${crop} and other related crops` : 'at least 15 key crops relevant to that region';
       
-      console.log(`Mandi Request: city=${c}, crop=${crop || 'All'}`);
+      console.log(`Mandi Request: location=${locationLabel}, crop=${crop || 'All'}`);
 
       if (!hasGroq) {
          const mockData = [
@@ -132,20 +135,20 @@ async function startServer() {
 
       const completion = await groq.chat.completions.create({
         messages: [
-          { role: "system", content: "You are an expert Indian agricultural market analyst. Generate realistic, live Mandi price data based on the latest Agmarknet trends. Return a JSON object with a 'data' array of items." },
-          { role: "user", content: `Generate realistic live mandi prices for ${c}, ${s}, focusing ${targetCrop}. 
+          { role: "system", content: "You are an expert Indian agricultural market analyst. Generate realistic, live Mandi price data based on the latest Agmarknet trends. Return a JSON object with a 'data' array of items. Focus EXCLUSIVELY on crops, vegetables, and fruits. DO NOT include dairy or milk." },
+          { role: "user", content: `Generate realistic live mandi prices for ${locationLabel}, focusing ${targetCrop}. 
           Requirements:
           1. Provide at least 15 items.
           2. Fields per item: 
              - crop: (string) name of the crop (If a specific crop was searched, ensure it is at the top of the list)
-             - category: (string) 'Crops', 'Vegetables', 'Fruits', or 'Dairy'
-             - market: (string) name of the mandi in or near ${c}
+             - category: (string) 'Crops', 'Vegetables', or 'Fruits' (NO DAIRY)
+             - market: (string) name of the mandi in or near ${locationLabel}
              - price: (NUMBER) current rate per quintal (NO COMMAS, NO CURRENCY SYMBOLS, MUST BE A NUMBER)
              - trend: (string) 'up', 'down', or 'stable'
              - change: (string) e.g. '+2.5%'
              - date: (string) 'Live'
              - distance: (string) e.g. '5 km'
-          3. Ensure prices are realistic for ${c}, ${s}.
+          3. Ensure prices are realistic for ${locationLabel}.
           4. Return ONLY valid JSON.` }
         ],
         model: "llama-3.3-70b-versatile",
