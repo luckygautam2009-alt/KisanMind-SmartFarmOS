@@ -321,7 +321,7 @@ export function Market() {
               <div className="p-8 bg-red-50 dark:bg-red-500/10 border-2 border-red-200 dark:border-red-500/30 rounded-3xl text-red-800 dark:text-red-300">
                 <h3 className="font-black text-xl mb-2">Service Temporarily Offline</h3>
                 <p className="font-medium opacity-80">{error}</p>
-                {error.includes('Key') && <p className="mt-4 text-sm font-bold bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm inline-block">Pro Tip: Enable full AI features by adding your GEMINI_API_KEY in the platform secrets.</p>}
+                {error.includes('Key') && <p className="mt-4 text-sm font-bold bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm inline-block">Note: Please ensure your Groq API key is correctly configured.</p>}
               </div>
             )}
             

@@ -106,7 +106,7 @@ export function Planner() {
       setSchedule(aiSchedule.trim());
     } catch (e: any) {
       console.error(e);
-      setSchedule(`**Error generating schedule.**\n\n${e.message}\n\n*Use \`npm run dev\` for the API server; add \`GEMINI_API_KEY\` for richer plans.*`);
+      setSchedule(`**Error generating schedule.**\n\n${e.message}`);
     } finally {
       setLoading(false);
     }

@@ -6,14 +6,14 @@ import { useUser } from '../contexts/UserContext';
 import { postAi } from '../lib/aiClient';
 import { useLanguage } from '../contexts/LanguageContext';
 
-function extractScanFields(markdown: string): { disease?: string; confidence?: string } {
+function extractScanFields(markdown: string): { disease: string; confidence: string } {
   const disease =
     markdown.match(/\*\*Detected Disease\/Pest\*\*[:\s]*\*?\*?([^*\n]+)/i)?.[1]?.trim() ||
     markdown.match(/(?:disease|diagnosis)[:\s]+([^\n#]+)/i)?.[1]?.trim();
   const confidence =
     markdown.match(/\*\*Confidence[^*]*\*\*[:\s]*([^\n]+)/i)?.[1]?.trim() ||
     markdown.match(/confidence\s*(?:score)?[:\s]+([^\n]+)/i)?.[1]?.trim();
-  return { disease: disease || undefined, confidence: confidence || undefined };
+  return { disease: disease || "", confidence: confidence || "" };
 }
 
 interface RecentScan {
@@ -80,8 +80,8 @@ export function Scan() {
         result: trimmed,
         imageBase64: image,
         date: new Date().toISOString(),
-        confidence: confidence || undefined,
-        disease: disease || undefined,
+        confidence: confidence || "",
+        disease: disease || "",
       });
 
     } catch (e: any) {
