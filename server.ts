@@ -108,7 +108,7 @@ async function startServer() {
   // API Route: AI Mandi Price Prediction (GROQ ONLY)
   app.post("/api/mandi", async (req, res) => {
     try {
-      const { city, state, crop } = req.body;
+      const { city, state, crop, isSearch } = req.body;
       const c = city || 'Local Area';
       const s = state || 'India';
       
@@ -116,7 +116,7 @@ async function startServer() {
       const locationLabel = (c.toLowerCase() === s.toLowerCase()) ? s : `${c}, ${s}`;
       const targetCrop = crop ? `specifically for ${crop} and other related crops` : 'at least 15 key crops relevant to that region';
       
-      console.log(`Mandi Request: location=${locationLabel}, crop=${crop || 'All'}`);
+      console.log(`Mandi Request: location=${locationLabel}, crop=${crop || 'All'}, isSearch=${isSearch}`);
 
       if (!hasGroq) {
          const mockData = [
@@ -133,8 +133,7 @@ async function startServer() {
          return res.json({ data: mockData });
       }
 
-      const isSearch = !!crop || (!!city && city !== location.city);
-      const itemCount = isSearch ? '1 to 3' : 'at least 15';
+      const itemCount = isSearch ? '1 to 2' : 'at least 15';
 
       const completion = await groq.chat.completions.create({
         messages: [

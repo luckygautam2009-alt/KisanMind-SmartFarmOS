@@ -109,7 +109,8 @@ export function Market() {
         body: JSON.stringify({ 
           city: city || location.city, 
           state: state || location.state,
-          crop: crop
+          crop: crop,
+          isSearch: !!crop || !!locationSearch
         })
       });
       const json = await res.json();
