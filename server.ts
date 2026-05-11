@@ -9,17 +9,6 @@ import Groq from "groq-sdk";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-/** Accept raw base64 or a data URL (`data:image/png;base64,...`). */
-function parseImageInput(raw: string | undefined): { mimeType: string; data: string } | null {
-  if (!raw || typeof raw !== 'string') return null;
-  const trimmed = raw.trim();
-  const dataUrl = trimmed.match(/^data:([^;]+);base64,([\s\S]+)$/i);
-  if (dataUrl) {
-    return { mimeType: dataUrl[1] || 'image/jpeg', data: dataUrl[2].replace(/\s/g, '') };
-  }
-  return { mimeType: 'image/jpeg', data: trimmed.replace(/\s/g, '') };
-}
-
 async function startServer() {
   const app = express();
   const PORT = 3000;
@@ -51,16 +40,15 @@ async function startServer() {
       console.log(`Chat Request: text="${text?.substring(0, 50)}...", hasImage=${!!imageBase64}`);
 
       if (!hasGroq) {
-         return res.json({ error: "⚠️ **Groq API Key Missing**: Please add your `GROQ_API_KEY` to the `.env` file to enable the chatbot." });
+         return res.json({ error: "⚠️ **Groq API Key Missing**: Please add your `GROQ_API_KEY` to your Environment Variables." });
       }
 
-      const parsedImg = parseImageInput(imageBase64);
       const messages: any[] = [
         { 
           role: "system", 
           content: imageBase64 
             ? "You are an expert plant pathologist. Analyze the provided crop image and respond with a detailed report. Use EXACTLY these bold headers for key data so the system can parse them:\n- **Detected Disease/Pest**: [Name of disease]\n- **Confidence**: [Percentage like 95%]\n- **Severity**: [Low/Medium/High]\n\nThen provide a 'Treatment Plan' and 'Fertilizer Recommendations' in clear Markdown."
-            : "You are KisanMind AI, an elite agricultural assistant. Act brilliant, technical, and empathetic to farmers. Use detailed Markdown. Identify exact causes, fertilizers, and treatments." 
+            : "You are KisanMind AI, an elite agricultural assistant. Act brilliant, technical, and empathetic to farmers. Use detailed Markdown." 
         }
       ];
 
@@ -77,21 +65,21 @@ async function startServer() {
       }
 
       // Add current message
-      if (parsedImg) {
+      if (imageBase64) {
         messages.push({
           role: "user",
           content: [
-            { type: "text", text: text || "Analyze this crop image." },
-            { type: "image_url", image_url: { url: `data:${parsedImg.mimeType};base64,${parsedImg.data}` } }
+            { type: "text", text: text || "Please analyze this crop leaf image for diseases." },
+            { type: "image_url", image_url: { url: imageBase64 } } // Groq expects the full data URL
           ]
         });
       } else {
-        messages.push({ role: "user", content: text || "Hello" });
+        messages.push({ role: "user", content: text || "" });
       }
 
       const completion = await groq.chat.completions.create({
         messages,
-        model: parsedImg ? "llama-3.2-11b-vision-preview" : "llama-3.3-70b-versatile",
+        model: imageBase64 ? "llama-3.2-11b-vision-preview" : "llama-3.3-70b-versatile",
       });
 
       const replyContent = completion.choices[0]?.message?.content || "I couldn't generate a response.";
