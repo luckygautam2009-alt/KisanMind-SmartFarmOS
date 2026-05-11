@@ -38,8 +38,8 @@ async function startServer() {
   const genAI = new GoogleGenAI({ apiKey: apiKey || "MISSING_KEY" });
   const groq = new Groq({ apiKey: groqKey || "MISSING_KEY" });
 
-  const hasGemini = !!apiKey && apiKey !== "MISSING_KEY" && apiKey !== "MY_GEMINI_API_KEY";
-  const hasGroq = !!groqKey && groqKey !== "MISSING_KEY" && groqKey !== "YOUR_GROQ_API_KEY";
+  const hasGemini = !!apiKey && apiKey.length > 20 && !apiKey.includes("MY_GEMINI");
+  const hasGroq = !!groqKey && groqKey.startsWith("gsk_");
 
   // API Route: AI Agent for General Questions and Crop Scanning
   app.post("/api/ai", async (req, res) => {
