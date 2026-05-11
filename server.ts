@@ -133,19 +133,19 @@ async function startServer() {
       const completion = await groq.chat.completions.create({
         messages: [
           { role: "system", content: "You are an expert Indian agricultural market analyst. Generate realistic, live Mandi price data based on the latest Agmarknet trends. Return a JSON object with a 'data' array of items." },
-          { role: "user", content: `Generate realistic live mandi prices for ${c}, ${s}. 
+          { role: "user", content: `Generate realistic live mandi prices for ${c}, ${s}, focusing ${targetCrop}. 
           Requirements:
           1. Provide at least 15 items.
           2. Fields per item: 
-             - crop: (string) name of the crop
+             - crop: (string) name of the crop (If a specific crop was searched, ensure it is at the top of the list)
              - category: (string) 'Crops', 'Vegetables', 'Fruits', or 'Dairy'
-             - market: (string) name of the mandi in/near ${c}
+             - market: (string) name of the mandi in or near ${c}
              - price: (NUMBER) current rate per quintal (NO COMMAS, NO CURRENCY SYMBOLS, MUST BE A NUMBER)
              - trend: (string) 'up', 'down', or 'stable'
              - change: (string) e.g. '+2.5%'
              - date: (string) 'Live'
              - distance: (string) e.g. '5 km'
-          3. Ensure prices are realistic for the region.
+          3. Ensure prices are realistic for ${c}, ${s}.
           4. Return ONLY valid JSON.` }
         ],
         model: "llama-3.3-70b-versatile",
