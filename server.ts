@@ -5,6 +5,7 @@ import { createServer as createViteServer } from "vite";
 import path from "path";
 import { fileURLToPath } from "url";
 import { GoogleGenAI } from "@google/genai";
+import Groq from "groq-sdk";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -27,29 +28,69 @@ async function startServer() {
   app.use(express.json({ limit: '50mb' }));
   app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-  // Initialize Gemini API (New SDK syntax)
+  // Initialize AI clients
   const apiKey = process.env.GEMINI_API_KEY;
+  const groqKey = process.env.GROQ_API_KEY;
+  
   const genAI = new GoogleGenAI({ apiKey: apiKey || "MISSING_KEY" });
+  const groq = new Groq({ apiKey: groqKey || "MISSING_KEY" });
 
   // API Route: AI Agent for General Questions and Crop Scanning
   app.post("/api/ai", async (req, res) => {
     try {
-      const { text, imageBase64 } = req.body;
+      const { text, imageBase64, history } = req.body;
       
-      // Demo mode fallback
-      if (!apiKey || apiKey === "MISSING_KEY" || apiKey === "MY_GEMINI_API_KEY") {
+      // Demo mode fallback if NO keys are provided
+      const hasGemini = apiKey && apiKey !== "MISSING_KEY" && apiKey !== "MY_GEMINI_API_KEY";
+      const hasGroq = groqKey && groqKey !== "MISSING_KEY" && groqKey !== "YOUR_GROQ_API_KEY";
+
+      if (!hasGemini && !hasGroq) {
          if (text && text.includes('Timetable')) {
-            return res.json({ result: "## AI Farm Timetable (Demo Mode)\n\n**Day 1-3:** Apply recommended fungicide in early morning.\n**Day 4:** Apply 20-10-10 NPK Fertilizer.\n**Day 5-7:** Wait and observe. Maintain normal basal watering.\n\n*Note: To generate real custom timetables based on actual weather & reports, please add your GEMINI_API_KEY in the AI Studio Secrets panel.*" });
+            return res.json({ result: "## AI Farm Timetable (Demo Mode)\n\n**Day 1-3:** Apply recommended fungicide in early morning.\n**Day 4:** Apply 20-10-10 NPK Fertilizer.\n**Day 5-7:** Wait and observe. Maintain normal basal watering.\n\n*Note: To generate real custom timetables based on actual weather & reports, please add your GEMINI_API_KEY or GROQ_API_KEY in the Secrets panel.*" });
          } else if (text && text.includes('Analyze the uploaded crop')) {
-            const mockReport = `## Health Status & Disease Detection\n\n**Status**: ⚠️ **Infected**\n**Detected Disease/Pest**: Early Blight (Alternaria solani)\n**Confidence Score**: 96.5% *(Analyzed with MobileNet ensemble heuristics)*\n\n### 🧪 Exact Pesticides Recommended\n1. **Chlorothalonil 75% WP**: Apply 2 grams/liter.\n2. **Mancozeb 75% WP**: Apply 1.5 grams/liter.\n\n### 🌿 Exact Fertilizers Recommended *(Random Forest Output)*\n* **Nitrogen (N)**: 120 kg/ha\n* **Phosphorus (P)**: 60 kg/ha\n* **Potassium (K)**: 80 kg/ha\n* **Formula**: Use NPK 20-10-10 mixture.\n\n### 📅 Detailed Treatment Plan\n* **Day 1**: Spray Chlorothalonil early morning.\n* **Day 3**: Supplement with Potassium spray.\n* **Watering**: Stop overhead irrigation. Use drip to keep leaves dry.\n\n> *Note: This is a high-accuracy simulated report. Add your **GEMINI_API_KEY** in the AI Studio Secrets panel for live image analysis.*`;
+            const mockReport = `## Health Status & Disease Detection\n\n**Status**: ⚠️ **Infected**\n**Detected Disease/Pest**: Early Blight (Alternaria solani)\n**Confidence Score**: 96.5% *(Analyzed with MobileNet ensemble heuristics)*\n\n### 🧪 Exact Pesticides Recommended\n1. **Chlorothalonil 75% WP**: Apply 2 grams/liter.\n2. **Mancozeb 75% WP**: Apply 1.5 grams/liter.\n\n### 🌿 Exact Fertilizers Recommended *(Random Forest Output)*\n* **Nitrogen (N)**: 120 kg/ha\n* **Phosphorus (P)**: 60 kg/ha\n* **Potassium (K)**: 80 kg/ha\n* **Formula**: Use NPK 20-10-10 mixture.\n\n### 📅 Detailed Treatment Plan\n* **Day 1**: Spray Chlorothalonil early morning.\n* **Day 3**: Supplement with Potassium spray.\n* **Watering**: Stop overhead irrigation. Use drip to keep leaves dry.\n\n> *Note: This is a high-accuracy simulated report. Add your **GEMINI_API_KEY** or **GROQ_API_KEY** in the Secrets panel for live image analysis.*`;
             return res.json({ result: mockReport });
          } else if (text && text.includes('Weather farm advisory')) {
             const demoAdv =
-              '## Weather advisory (demo mode)\n\n- Prefer spraying pesticides and foliar feeds in early morning or late evening when wind is lower.\n- If rain probability exceeds 60% in the next 48 hours, delay spraying to avoid wash-off.\n- During hot afternoons above 35°C, avoid irrigation mist on leaves to reduce fungal pressure.\n- Match nitrogen applications to expected rainfall to reduce leaching.\n\n*Add **GEMINI_API_KEY** for a tailored advisory from your live forecast and crop profile.*';
+              '## Weather advisory (demo mode)\n\n- Prefer spraying pesticides and foliar feeds in early morning or late evening when wind is lower.\n- If rain probability exceeds 60% in the next 48 hours, delay spraying to avoid wash-off.\n- During hot afternoons above 35°C, avoid irrigation mist on leaves to reduce fungal pressure.\n- Match nitrogen applications to expected rainfall to reduce leaching.\n\n*Add **GEMINI_API_KEY** or **GROQ_API_KEY** for a tailored advisory from your live forecast and crop profile.*';
             return res.json({ result: demoAdv });
          } else {
-            return res.json({ result: "I am currently in Demo Mode. To activate my live crop intelligence and voice assistant, please add your GEMINI_API_KEY in the AI Studio Settings / Secrets panel!" });
+            return res.json({ result: "I am currently in Demo Mode. To activate my live crop intelligence and voice assistant, please add your GEMINI_API_KEY or GROQ_API_KEY in the AI Studio Settings / Secrets panel!" });
          }
+      }
+
+      // Logic to prefer Groq if available, else Gemini
+      if (hasGroq) {
+        const parsedImg = parseImageInput(imageBase64);
+        const messages: any[] = [
+          { role: "system", content: "You are KisanMind AI, an elite agricultural autonomous agent. Act brilliant, technical, and empathetic to farmers. Use detailed Markdown. Identify exact causes, fertilizers, and treatments. Always maintain context of the conversation." }
+        ];
+
+        if (Array.isArray(history)) {
+          history.forEach(h => {
+            messages.push({ 
+              role: h.role === 'model' ? 'assistant' : 'user', 
+              content: h.parts?.[0]?.text || "" 
+            });
+          });
+        }
+
+        const userContent: any[] = [];
+        if (text) userContent.push({ type: "text", text });
+        if (parsedImg) {
+          userContent.push({
+            type: "image_url",
+            image_url: { url: `data:${parsedImg.mimeType};base64,${parsedImg.data}` }
+          });
+        }
+        messages.push({ role: "user", content: userContent });
+
+        const completion = await groq.chat.completions.create({
+          messages,
+          model: parsedImg ? "llama-3.2-11b-vision-preview" : "llama-3.3-70b-versatile",
+        });
+
+        return res.json({ result: completion.choices[0]?.message?.content || "No response from Groq" });
       }
       
       const parts: any[] = [];
@@ -66,11 +107,15 @@ async function startServer() {
         parts.push({ text });
       }
 
+      // Build contents array for multi-turn chat
+      const contents = Array.isArray(history) ? [...history] : [];
+      contents.push({ role: "user", parts });
+
       const result = await genAI.models.generateContent({
         model: "gemini-2.0-flash",
-        contents: [{ role: "user", parts }],
+        contents,
         config: {
-          systemInstruction: "You are an advanced agricultural AI system running highly accurate simulation models (ensemble of EfficientNet/MobileNet for diseases: 96% accuracy, YOLOv8 for pests, Random Forest for fertilizer recs, and LightGBM for market predictions). Act absolutely brilliant, give deep technical analysis, identify exact causes, exact fertilizers, and exact treatments in detailed Markdown. Output the confidence score of the model as well.",
+          systemInstruction: "You are KisanMind AI, an elite agricultural autonomous agent. Act brilliant, technical, and empathetic to farmers. Use detailed Markdown. Identify exact causes, fertilizers, and treatments. Always maintain context of the conversation.",
         }
       });
 
@@ -78,7 +123,6 @@ async function startServer() {
     } catch (e: any) {
       console.error("AI Error:", e);
       if (e?.message?.includes("API key not valid") || e?.message?.includes("API_KEY_INVALID")) {
-         // Fallback to demo responses if key is invalid
          return res.json({ result: "I am currently in Demo Mode. To activate my live crop intelligence and voice assistant, please add your GEMINI_API_KEY in the AI Studio Settings / Secrets panel!" });
       }
       res.status(500).json({ error: "Failed to process AI request.", details: e?.message || String(e) });
@@ -93,7 +137,7 @@ async function startServer() {
       const s = state || 'India';
       const targetCrop = crop ? `specifically for ${crop} and other related crops` : 'at least 15 key crops relevant to that region';
       
-      if (!apiKey || apiKey === "MISSING_KEY" || apiKey === "MY_GEMINI_API_KEY") {
+      if (!hasGemini && !hasGroq) {
          const mockData = [
            { crop: 'Wheat (Sharbati)', category: 'Crops', market: `${c} Principal Mandi`, price: 2450, trend: 'up', change: '+2.4%', date: 'Live', distance: '12 km' },
            { crop: 'Soybean (Yellow)', category: 'Crops', market: `${c} Krishi Upaj Mandi`, price: 4200, trend: 'down', change: '-1.2%', date: 'Live', distance: '15 km' },
@@ -131,6 +175,23 @@ async function startServer() {
          return res.json({ data: filteredMock });
       }
 
+      if (hasGroq) {
+        const completion = await groq.chat.completions.create({
+          messages: [
+            { role: "system", content: "You are an agricultural market data simulator. Generate a realistic JSON response containing current mandi prices, trends, distances, and crops. Reply ONLY with valid JSON." },
+            { role: "user", content: `Run a simulated LightGBM regression model based on current dynamic Agmarknet market data to predict realistic mandi prices for ${city || 'local area'}, ${state || 'India'}. Return highly accurate predictions ${targetCrop}. Include trend, distance, and 80-90% confidence score. List at least 15 items total.` }
+          ],
+          model: "llama-3.3-70b-versatile",
+          response_format: { type: "json_object" }
+        });
+        const content = completion.choices[0]?.message?.content || "[]";
+        // Groq might return the array directly or inside a property. We expect an array based on original code schema.
+        // But the original code used a schema that forced an array.
+        const parsed = JSON.parse(content);
+        return res.json({ data: Array.isArray(parsed) ? parsed : (parsed.data || []) });
+      }
+
+      // Gemini Fallback
       const result = await genAI.models.generateContent({
         model: "gemini-2.0-flash",
         contents: `Run a simulated LightGBM regression model based on current dynamic Agmarknet market data to predict realistic mandi prices for ${city || 'local area'}, ${state || 'India'}. Return highly accurate predictions ${targetCrop}. Include trend, distance, and 80-90% confidence score. List at least 15 items total.`,

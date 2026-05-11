@@ -1,7 +1,11 @@
 /**
  * Calls the Express `/api/ai` route (same origin when using `npm run dev`).
  */
-export async function postAi(body: { text?: string; imageBase64?: string }): Promise<string> {
+export async function postAi(body: { 
+  text?: string; 
+  imageBase64?: string;
+  history?: { role: 'user' | 'model'; parts: { text: string }[] }[];
+}): Promise<string> {
   const res = await fetch('/api/ai', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
