@@ -27,6 +27,14 @@ async function startServer() {
   app.use(express.json({ limit: '50mb' }));
   app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
+  // Global Logger
+  app.use((req, res, next) => {
+    if (req.path.startsWith('/api')) {
+      console.log(`[API REQUEST] ${req.method} ${req.path}`);
+    }
+    next();
+  });
+
   // Initialize Groq AI
   const groqKey = process.env.GROQ_API_KEY;
   console.log(`Server Startup: GROQ_API_KEY detected? ${!!groqKey} (${groqKey?.substring(0, 5)}...)`);
@@ -35,10 +43,10 @@ async function startServer() {
   const hasGroq = !!groqKey && groqKey.startsWith("gsk_");
 
   // API Route: AI Agent for General Questions and Crop Scanning (GROQ ONLY)
-  app.post("/api/chat", async (req, res) => {
+  app.post(["/api/chat", "/api/ai"], async (req, res) => {
     try {
-      const { message, imageBase64, history } = req.body;
-      const text = message;
+      const { message, text: oldText, imageBase64, history } = req.body;
+      const text = message || oldText;
       
       console.log(`Chat Request: text="${text?.substring(0, 50)}...", hasImage=${!!imageBase64}`);
 
@@ -81,8 +89,11 @@ async function startServer() {
         model: parsedImg ? "llama-3.2-11b-vision-preview" : "llama-3.3-70b-versatile",
       });
 
-      const replyContent = completion.choices[0]?.message?.content;
-      res.json({ reply: replyContent || "I couldn't generate a response." });
+      const replyContent = completion.choices[0]?.message?.content || "I couldn't generate a response.";
+      res.json({ 
+        reply: replyContent,
+        result: replyContent 
+      });
 
     } catch (e: any) {
       console.error("CHAT ROUTE ERROR:", e);
