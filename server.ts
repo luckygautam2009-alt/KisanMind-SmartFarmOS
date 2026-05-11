@@ -32,67 +32,89 @@ async function startServer() {
   const apiKey = process.env.GEMINI_API_KEY;
   const groqKey = process.env.GROQ_API_KEY;
   
+  console.log(`Server Startup: GEMINI_API_KEY detected? ${!!apiKey} (${apiKey?.substring(0, 5)}...)`);
+  console.log(`Server Startup: GROQ_API_KEY detected? ${!!groqKey} (${groqKey?.substring(0, 5)}...)`);
+
   const genAI = new GoogleGenAI({ apiKey: apiKey || "MISSING_KEY" });
   const groq = new Groq({ apiKey: groqKey || "MISSING_KEY" });
+
+  const hasGemini = !!apiKey && apiKey !== "MISSING_KEY" && apiKey !== "MY_GEMINI_API_KEY";
+  const hasGroq = !!groqKey && groqKey !== "MISSING_KEY" && groqKey !== "YOUR_GROQ_API_KEY";
 
   // API Route: AI Agent for General Questions and Crop Scanning
   app.post("/api/ai", async (req, res) => {
     try {
       const { text, imageBase64, history } = req.body;
       
-      // Demo mode fallback if NO keys are provided
-      const hasGemini = apiKey && apiKey !== "MISSING_KEY" && apiKey !== "MY_GEMINI_API_KEY";
-      const hasGroq = groqKey && groqKey !== "MISSING_KEY" && groqKey !== "YOUR_GROQ_API_KEY";
-
-      if (!hasGemini && !hasGroq) {
-         if (text && text.includes('Timetable')) {
-            return res.json({ result: "## AI Farm Timetable (Demo Mode)\n\n**Day 1-3:** Apply recommended fungicide in early morning.\n**Day 4:** Apply 20-10-10 NPK Fertilizer.\n**Day 5-7:** Wait and observe. Maintain normal basal watering.\n\n*Note: To generate real custom timetables based on actual weather & reports, please add your GEMINI_API_KEY or GROQ_API_KEY in the Secrets panel.*" });
-         } else if (text && text.includes('Analyze the uploaded crop')) {
-            const mockReport = `## Health Status & Disease Detection\n\n**Status**: ⚠️ **Infected**\n**Detected Disease/Pest**: Early Blight (Alternaria solani)\n**Confidence Score**: 96.5% *(Analyzed with MobileNet ensemble heuristics)*\n\n### 🧪 Exact Pesticides Recommended\n1. **Chlorothalonil 75% WP**: Apply 2 grams/liter.\n2. **Mancozeb 75% WP**: Apply 1.5 grams/liter.\n\n### 🌿 Exact Fertilizers Recommended *(Random Forest Output)*\n* **Nitrogen (N)**: 120 kg/ha\n* **Phosphorus (P)**: 60 kg/ha\n* **Potassium (K)**: 80 kg/ha\n* **Formula**: Use NPK 20-10-10 mixture.\n\n### 📅 Detailed Treatment Plan\n* **Day 1**: Spray Chlorothalonil early morning.\n* **Day 3**: Supplement with Potassium spray.\n* **Watering**: Stop overhead irrigation. Use drip to keep leaves dry.\n\n> *Note: This is a high-accuracy simulated report. Add your **GEMINI_API_KEY** or **GROQ_API_KEY** in the Secrets panel for live image analysis.*`;
-            return res.json({ result: mockReport });
-         } else if (text && text.includes('Weather farm advisory')) {
-            const demoAdv =
-              '## Weather advisory (demo mode)\n\n- Prefer spraying pesticides and foliar feeds in early morning or late evening when wind is lower.\n- If rain probability exceeds 60% in the next 48 hours, delay spraying to avoid wash-off.\n- During hot afternoons above 35°C, avoid irrigation mist on leaves to reduce fungal pressure.\n- Match nitrogen applications to expected rainfall to reduce leaching.\n\n*Add **GEMINI_API_KEY** or **GROQ_API_KEY** for a tailored advisory from your live forecast and crop profile.*';
-            return res.json({ result: demoAdv });
-         } else {
-            return res.json({ result: "I am currently in Demo Mode. To activate my live crop intelligence and voice assistant, please add your GEMINI_API_KEY or GROQ_API_KEY in the AI Studio Settings / Secrets panel!" });
-         }
-      }
-
-      // Logic to prefer Groq if available, else Gemini
-      if (hasGroq) {
-        const parsedImg = parseImageInput(imageBase64);
-        const messages: any[] = [
-          { role: "system", content: "You are KisanMind AI, an elite agricultural autonomous agent. Act brilliant, technical, and empathetic to farmers. Use detailed Markdown. Identify exact causes, fertilizers, and treatments. Always maintain context of the conversation." }
-        ];
-
-        if (Array.isArray(history)) {
-          history.forEach(h => {
-            messages.push({ 
-              role: h.role === 'model' ? 'assistant' : 'user', 
-              content: h.parts?.[0]?.text || "" 
-            });
-          });
-        }
-
-        const userContent: any[] = [];
-        if (text) userContent.push({ type: "text", text });
-        if (parsedImg) {
-          userContent.push({
-            type: "image_url",
-            image_url: { url: `data:${parsedImg.mimeType};base64,${parsedImg.data}` }
-          });
-        }
-        messages.push({ role: "user", content: userContent });
-
-        const completion = await groq.chat.completions.create({
-          messages,
-          model: parsedImg ? "llama-3.2-11b-vision-preview" : "llama-3.3-70b-versatile",
-        });
-
-        return res.json({ result: completion.choices[0]?.message?.content || "No response from Groq" });
-      }
+      // Debug logs to terminal
+      console.log(`AI Request: text="${text?.substring(0, 50)}...", hasImage=${!!imageBase64}`);
       
+      console.log(`AI Route Status: hasGemini=${hasGemini}, hasGroq=${hasGroq}`);
+
+      // 1. Demo Mode Fallback
+      if (!hasGemini && !hasGroq) {
+         console.log("Both keys missing, falling back to Demo Mode.");
+         if (text && text.includes('Timetable')) {
+            return res.json({ result: "## AI Farm Timetable (Demo Mode)\n\n**Day 1-3:** Apply recommended fungicide in early morning.\n**Day 4:** Apply 20-10-10 NPK Fertilizer.\n**Day 5-7:** Wait and observe. Maintain normal basal watering.\n\n*Note: To activate live AI, add your GEMINI_API_KEY or GROQ_API_KEY to .env*" });
+         }
+         return res.json({ result: "I am currently in Demo Mode. To activate my live crop intelligence and voice assistant, please add your GEMINI_API_KEY or GROQ_API_KEY in the AI Studio Settings / Secrets panel!" });
+      }
+
+      // 2. Groq Priority
+      if (hasGroq) {
+        try {
+          console.log("Attempting Groq Request...");
+          const parsedImg = parseImageInput(imageBase64);
+          
+          const messages: any[] = [
+            { role: "system", content: "You are KisanMind AI, an elite agricultural autonomous agent. Act brilliant, technical, and empathetic to farmers. Use detailed Markdown. Always maintain context." }
+          ];
+
+          // Add history if present
+          if (Array.isArray(history) && history.length > 0) {
+            history.forEach(h => {
+              if (h.parts && h.parts[0] && h.parts[0].text) {
+                messages.push({ 
+                  role: h.role === 'model' ? 'assistant' : 'user', 
+                  content: h.parts[0].text 
+                });
+              }
+            });
+          }
+
+          // Add current message
+          if (parsedImg) {
+            messages.push({
+              role: "user",
+              content: [
+                { type: "text", text: text || "Analyze this crop image." },
+                { type: "image_url", image_url: { url: `data:${parsedImg.mimeType};base64,${parsedImg.data}` } }
+              ]
+            });
+          } else {
+            messages.push({ role: "user", content: text || "Hello" });
+          }
+
+          const completion = await groq.chat.completions.create({
+            messages,
+            model: parsedImg ? "llama-3.2-11b-vision-preview" : "llama-3.3-70b-versatile",
+          });
+
+          const reply = completion.choices[0]?.message?.content;
+          if (reply) {
+            console.log("Groq Success!");
+            return res.json({ result: reply });
+          }
+          throw new Error("Empty response from Groq");
+        } catch (groqErr: any) {
+          console.error("Groq Failed, falling back to Gemini if available:", groqErr.message);
+          if (!hasGemini) throw groqErr; // If no Gemini, throw to catch block
+          // Else continue to Gemini below
+        }
+      }
+
+      // 3. Gemini Fallback
+      console.log("Attempting Gemini Request...");
       const parts: any[] = [];
       const parsedImg = parseImageInput(imageBase64);
       if (parsedImg) {
@@ -103,11 +125,8 @@ async function startServer() {
           },
         });
       }
-      if (text) {
-        parts.push({ text });
-      }
+      if (text) parts.push({ text });
 
-      // Build contents array for multi-turn chat
       const contents = Array.isArray(history) ? [...history] : [];
       contents.push({ role: "user", parts });
 
@@ -119,13 +138,18 @@ async function startServer() {
         }
       });
 
+      console.log("Gemini Success!");
       res.json({ result: result.text });
     } catch (e: any) {
-      console.error("AI Error:", e);
-      if (e?.message?.includes("API key not valid") || e?.message?.includes("API_KEY_INVALID")) {
-         return res.json({ result: "I am currently in Demo Mode. To activate my live crop intelligence and voice assistant, please add your GEMINI_API_KEY in the AI Studio Settings / Secrets panel!" });
+      console.error("AI ROUTE FATAL ERROR:", e);
+      const errorMsg = e?.message || String(e);
+      
+      // If it's an auth error, show the nice demo message
+      if (errorMsg.includes("API key not valid") || errorMsg.includes("401") || errorMsg.includes("invalid_api_key")) {
+         return res.json({ result: `⚠️ **AI Authentication Error**: Your API key seems invalid. \n\n**Error Details**: ${errorMsg}\n\nPlease check your .env file.` });
       }
-      res.status(500).json({ error: "Failed to process AI request.", details: e?.message || String(e) });
+      
+      res.status(500).json({ error: "Failed to process AI request.", details: errorMsg });
     }
   });
 
