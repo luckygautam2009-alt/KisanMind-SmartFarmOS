@@ -86,7 +86,7 @@ export function Scan() {
 
     } catch (e: any) {
       console.error(e);
-      setResult(`**Error processing image.**\n\n${e.message}\n\n*Tip: Run the app with \`npm run dev\` so the API server is available on the same origin, and optionally set \`GEMINI_API_KEY\` for live vision analysis.*`);
+      setResult(`**Error processing image.**\n\n${e.message}`);
     } finally {
       setLoading(false);
     }
